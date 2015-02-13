@@ -4,8 +4,8 @@
 
 # 2015, j.grassler@syseleven.de
 
-config_dir=/opt/sys11-config
-config_name=/opt/sys11-config
+config_dir=/opt/config/sys11
+config_name=sys11
 
 usage()
   {

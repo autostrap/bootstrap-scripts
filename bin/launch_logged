@@ -9,7 +9,7 @@
 cmd=$*
 
 if [ -z "$cmd" ]; then
-  return 1
+  exit 1
 fi
 
 if [ -n "$bootstrap_stage" ]; then

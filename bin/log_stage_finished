@@ -7,7 +7,7 @@
 #                    message (required)
 
 if [ -z "$bootstrap_stage" ]; then
-  return 1
+  exit 1
 fi
 
 echo "STAGE {\"script\": \"$bootstrap_stage\", \"date\": \"$(date)\", \"state\": \"finished\", \"command\": \"stage_end\"}" > /dev/console
