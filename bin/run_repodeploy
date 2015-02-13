@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# run_repodeploy - Invokes puppet-repodeploy with hiera configuration from /optc/cloud-config. Can be used for bootstrapping and interactively.
+
+if [ ! -t 0 ]; then # Off switch for logging (useful for interactive invocation of the functions below)
+  exec >> /var/log/initialize_instance.log 2>&1
+  set -x
+fi
+
+puppet apply -e 'include repodeploy' --modulepath /etc/puppet/modules:/opt/openstack-puppet:/opt/puppet-upstream
