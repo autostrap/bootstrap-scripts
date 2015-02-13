@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+#
+# 2012, 2013, 2014 s.andres@syseleven.de
+# 2014 c.glaubitz@syseleven.de
+#
+# managed by puppet, do not touch manually
+#
+PATH=/usr/bin:/usr/local/bin:/opt/csw/bin/:$PATH
+
+# pp-1228, prevent ssh-agent from being used in puppet runs
+unset SSH_AUTH_SOCK
+
+while [[ $1 ]]; do
+        case "$1" in
+                -f) force=1; shift;;
+    *) args+=("$1"); shift;;
+        esac
+done
+
+
+statefile=/var/cache/puppet.state
+log=/var/log/puppet/puppet_run.log
+
+cleanup() {
+  if type ed >/dev/null 2>&1; then
+    ed -s /etc/puppet/puppet.conf <<< $',s/noop = [a-z]\+/noop = true/g\nw'
+  else
+    sed -i 's/noop = false/noop = true/' /etc/puppet/puppet.conf
+  fi
+
+  [[ -f $t ]] && rm "$t"
+}
+
+trap 'cleanup' 0 1 2 3 15
+
+run_puppet() {
+  t=$(mktemp) || exit 55
+  puppet agent --test --pluginsync "${args[@]}" 2>&1 | tee "$t"
+  ret=${PIPESTATUS[0]}
+
+  if ((ret != 2 && ret != 0)) || [[ ! -f $t ]]; then
+    #puppet possibly broken
+    return
+  fi
+
+  if fgrep -v 'Finished catalog run' "$t" | fgrep -v 'File[puppet.conf]' | fgrep -v 'YOU ARE WORKING ON THE DEV-PUPPET SERVER' | grep -q '[Nn]otice:'; then
+    #changed system.
+    (echo -n $(date); echo " -- Run 1 -- system changed"; cat "$t") >>"$log"
+    echo 'PENDING' >$statefile
+  else
+    #successful run.
+    (echo -n $(date); echo " -- Run 1 -- no changes") >>"$log"
+    echo 'UP-TO-DATE' >"$statefile"
+  fi
+}
+
+change_noop_to_false() {
+  if fgrep 'noop = true' /etc/puppet/puppet.conf >/dev/null 2>&1; then
+    if type ed >/dev/null 2>&1; then
+      ed -s /etc/puppet/puppet.conf <<< $',s/noop = true/noop = false/g\nw'
+    else
+      sed -i 's/noop = true/noop = false/' /etc/puppet/puppet.conf
+    fi
+  fi
+}
+
+if ((force)); then
+  change_noop_to_false && run_puppet  
+else
+  run_puppet
+fi
+

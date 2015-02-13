@@ -32,3 +32,6 @@ ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-defaults
 ln -sf /etc/puppet/hiera.yaml /etc/hiera.yaml
 
 cp /opt/override.yaml /etc/puppet/hieradata/override.yaml
+
+ln -s ${scripts_dir}/bin/run_puppet_hiera /usr/local/bin
+ln -s ${scripts_dir}/bin/really_run_puppet_agent /usr/local/bin
