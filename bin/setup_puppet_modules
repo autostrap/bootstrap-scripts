@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Installs dependencies required for puppet and repodeploy setup.
+
+mkdir -p /etc/puppet/modules
+
+# manual deps of puppetdb
+puppet module install puppetlabs-inifile &&
+
+puppet module install stephenrjohnson-puppet &&
+
+# requirements for dashboard
+puppet module install puppetlabs-mysql &&
+puppet module install puppetlabs-stdlib &&
+puppet module install puppetlabs-vcsrepo &&
+
+puppet module uninstall --force puppetlabs-firewall # Conflicts with the more recent version we pull from git.

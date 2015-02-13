@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+sys11_topics="$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)"
+sys11_hiera_opts="$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)"
+
+if [ "$sys11_topics" = "null" ]; then
+  sys11_topics="base firewall"
+fi
+
+if [ "$sys11_hiera_opts" = "null" ]; then
+  sys11_hiera_opts=""
+fi
+
+mkdir /etc/puppet/hieradata
+
+cat <<EOF /etc/puppet/hiera.yaml
+---
+:backends:
+  - yaml
+:logger: puppet
+:yaml:
+  :datadir: /etc/puppet/hieradata
+  :puppet:
+    :datasource: data
+
+:hierarchy:
+EOF
+
+gen_hierarchy ${sys11_hiera_opts} ${sys11_topics} >> /etc/puppet/hiera.yaml
+
+ln -s ${config_dir}/puppet/hieradata /etc/puppet/
+ln -sf /etc/puppet/hiera.yaml /etc/hiera.yaml
+
+cp /opt/override.yaml /etc/puppet/hieradata/override.yaml

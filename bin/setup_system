@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# 2014, s.andres@syseleven.de
+
+exec >> /var/log/initialize_instance.log 2>&1
+set -x
+
+cd /tmp/ &&
+
+# mount metadata drive
+mkdir /config
+if mount -t iso9660 -o ro /dev/disk/by-label/config-2 /config; then
+    grep -q '/dev/disk/by-label/config-2.*/config' /etc/fstab || echo '/dev/disk/by-label/config-2 /config iso9660 defaults 0 0' >> /etc/fstab
+fi
+
+# set tz
+rm /etc/localtime && ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
+cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys
+chown root:root /root/.ssh/authorized_keys
+
+aptitude update
+aptitude install -y git puppet
+
+# avahi-daemon needed for local DNS
+aptitude install -y \
+                    avahi-daemon \
+                    bash-completion \
+                    ethtool \
+                    jq \
+                    ntp \
+                    rsync \
+                    rubygems \
+                    screen \
+                    vim \
+                    wget \
+
+update-alternatives --set editor /usr/bin/vim.basic

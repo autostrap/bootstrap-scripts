@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+# 2014, j.grassler@syseleven.de
+
+lockdir=/tmp/initialize_instance.lock
+if mkdir "$lockdir"; then
+  #echo >&2 "successfully acquired lock"
+
+  # Remove lockdir when the script finishes, or when it receives a signal
+  trap 'rm -rf "$lockdir"' 0    # remove directory when script finishes
+  trap "exit 2" 1 2 3 15  # terminate script when receiving signal
+
+  # Optionally create temporary files in this directory, because
+  # they will be removed automatically:
+  tmpfile=$lockdir/filelist
+else
+  echo >&2 "cannot acquire lock, giving up on $lockdir"
+  exit 0
+fi
+
+if [[ -f /var/log/initialize_instance.log ]]; then
+  echo "ERROR: '/var/log/initialize_instance.log' already exists, not going to re-initialize system"
+  logger "ERROR: '/var/log/initialize_instance.log' already exists, not going to re-initialize system"
+  exit 1
+fi
+
+exec > /var/log/initialize_instance.log 2>&1
+set -x
+
+# Get environment from cloud_params if available (MAAS uses this)
+
+if [ -f /etc/cloud_params ]; then
+  . /etc/cloud_params
+fi
+
+
+# Repositories:
+
+: ${config_repo:=git@gitlab.syseleven.de:cloudstrap/sys11-config.git}
+export config_repo
+: ${config_branch:=master}
+export config_branch
+: ${puppet_repo:=git@gitlab.syseleven.de:openstack/puppet-sys11puppet.git}
+export puppet_repo
+: ${puppet_branch:=master}
+export puppet_branch
+: ${repodeploy_repo:=git@gitlab.syseleven.de:openstack/puppet-repodeploy.git}
+export repodeploy_repo
+: ${repodeploy_branch:=master}
+export repodeploy_branch
+
+
+# Directories:
+
+: ${scripts_dir:=/opt/scripts/sys11}
+export scripts_dir
+: ${config_dir:=/opt/config/sys11}
+export config_dir
+: ${modules_path:="/opt/openstack-puppet:/opt/puppet-upstream:/etc/puppet/modules"}
+export modules_path
+
+bootstrap_stage=initialize_instance
+
+name=$(hostname -s)
+
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scripts_dir}/bin
+
+for i in setup_system setup_puppet_modules setup_repos setup_hiera
+do
+  launch_logged $i 
+done
+
+log_stage_finished
+
+[[ $additional_script ]] && "$scripts_dir/$additional_script"
+
+echo "finished $0"

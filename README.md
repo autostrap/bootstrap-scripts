@@ -33,11 +33,11 @@ bin/
 ----
 
 This directory contains scripts and other executables used in the course of the
-bootstrapping process. *initialize-instance* includes it in its PATH variable
+bootstrapping process. *initialize_instance* includes it in its PATH variable
 for easy use.
 
-initialize-instance
+initialize_instance
 -------------------
 
 This is the first stage bootstrap script invoked by our default user-data
-script. It logs its output to /var/log/initialize-instance.log.
+script. It logs its output to /var/log/initialize_instance.log.

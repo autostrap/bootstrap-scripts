@@ -1,0 +1,13 @@
+# 2015, j.grassler@syseleven.de
+
+# Logs an end-of-stage message to /dev/console after a bootstrap stage concludes.
+#
+# Environment:
+#  bootstrap_stage - Indicates the current bootstrap stage, included in the log
+#                    message (required)
+
+if [ -z "$bootstrap_stage" ]; then
+  return 1
+fi
+
+echo "STAGE {\"script\": \"$bootstrap_stage\", \"date\": \"$(date)\", \"state\": \"finished\", \"command\": \"stage_end\"}" > /dev/console
