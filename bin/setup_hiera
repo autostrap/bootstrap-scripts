@@ -13,7 +13,7 @@ fi
 
 mkdir /etc/puppet/hieradata
 
-cat <<EOF /etc/puppet/hiera.yaml
+cat > /etc/puppet/hiera.yaml <<EOF
 ---
 :backends:
   - yaml
