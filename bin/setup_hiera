@@ -35,3 +35,5 @@ cp /opt/override.yaml /etc/puppet/hieradata/override.yaml
 
 ln -s ${scripts_dir}/bin/run_puppet_hiera /usr/local/bin
 ln -s ${scripts_dir}/bin/really_run_puppet_agent /usr/local/bin
+
+cp /opt/openstack-puppet/sys11puppet/files/puppetmaster_site.pp /etc/puppet/manifests/site.pp
