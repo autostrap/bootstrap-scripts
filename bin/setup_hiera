@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 sys11_topics="$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)"
-sys11_hiera_opts="$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)"
+sys11_hiera_opts="$(jq -r .meta.sys11_hiera_opts /config/openstack/latest/meta_data.json)"
 
 if [ "$sys11_topics" = "null" ]; then
   sys11_topics="base firewall"
