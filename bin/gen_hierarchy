@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+# gen_hierarchy - Generate Hiera hierarchy array for a cloudstrap configuration checkout
+
+# 2015, j.grassler@syseleven.de
+
+config_dir=/opt/sys11-config
+config_name=/opt/sys11-config
+
+usage()
+  {
+  echo 'usage:'
+  echo "  $0 [-c] [-r] [-d <dir>] <topic> [<topic> ...]"
+  echo
+  echo '  options:'
+  echo '    -c        Include classes.d'
+  echo '    -r        Include repos.d'
+  echo '    -d <dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
+  echo '    -n <name> Prefix hierarchy entries with <name> (defaults to "sys11-config")'
+  }
+
+while [[ $1 ]]; do
+  case $1 in
+    -c)
+      include_classes=1
+      shift 1
+      ;;
+    -r)
+      include_repos=1
+      shift 1
+      ;;
+    -d)
+      config_dir=$2
+      shift 2
+      ;;
+    -n)
+      config_name=$2
+      shift 2
+      ;;
+    -h)
+      usage
+      exit 0
+      ;;
+    *)
+      args+=("$1")
+      shift 1
+      ;;
+   esac
+done
+
+if [ -z "$args" ]; then
+  usage
+  exit 1
+fi
+
+# Generates hierarchy entries for all yaml files in a directory tree
+gen_entries()
+  {
+  dir=$1
+  topicdir=$2
+  config_name=$3
+
+  find "${dir}/${topicdir}" -type f \
+    | grep '\.yaml$' \
+    | sed -e 's/\.yaml//' \
+    | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
+    | sed 's/^/  - /'
+  }
+
+for topic in ${args[*]}
+  do
+  (( include_classes )) && gen_entries "${config_dir}/puppet/hieradata/" 'classes.d' "$config_name" | grep $topic
+  gen_entries "${config_dir}/puppet/hieradata/" 'config.d' "$config_name" | grep $topic
+  (( include_repos )) && gen_entries "${config_dir}/puppet/hieradata/" 'repos.d' "$config_name" | grep $topic
+  done
