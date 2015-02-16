@@ -3,7 +3,6 @@
 # run_puppet_hiera - Runs puppet with classes from local hiera configuration
 
 if [ ! -t 0 ]; then # Off switch for logging (useful for interactive invocation of the functions below)
-  exec >> /var/log/initialize_instance.log 2>&1
   set -x
 fi
 

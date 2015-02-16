@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # 2014, s.andres@syseleven.de
 
-exec >> /var/log/initialize_instance.log 2>&1
 set -x
 
 cd /tmp/ &&
