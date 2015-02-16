@@ -4,6 +4,9 @@
 
 # 2015, j.grassler@syseleven.de
 
+exec > /var/log/initialize_instance.log 2>&1
+set -x
+
 config_dir=/opt/config/sys11
 config_name=sys11
 

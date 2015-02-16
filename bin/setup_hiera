@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+exec > /var/log/initialize_instance.log 2>&1
+set -x
+
 sys11_topics="$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)"
 sys11_hiera_opts="$(jq -r .meta.sys11_hiera_opts /config/openstack/latest/meta_data.json)"
 

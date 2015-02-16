@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+exec > /var/log/initialize_instance.log 2>&1
+set -x
+
 # 2014, j.grassler@syseleven.de
 
 git clone --branch "${config_branch}" "${config_repo}" "${config_dir}"

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+exec > /var/log/initialize_instance.log 2>&1
+set -x
+
 # Installs dependencies required for puppet and repodeploy setup.
 
 mkdir -p /etc/puppet/modules
