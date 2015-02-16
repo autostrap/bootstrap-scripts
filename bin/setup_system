@@ -18,16 +18,22 @@ rm /etc/localtime && ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys
 chown root:root /root/.ssh/authorized_keys
 
+# Use Puppetlabs' repository for up-to-date puppet packages
+. /etc/lsb-release
+wget -c https://apt.puppetlabs.com/puppetlabs-release-${DISTRIB_CODENAME}.deb &&
+dpkg -i puppetlabs-release-${DISTRIB_CODENAME}.&&
+
 aptitude update
-aptitude install -y git puppet
 
 # avahi-daemon needed for local DNS
 aptitude install -y \
                     avahi-daemon \
                     bash-completion \
                     ethtool \
+                    git \
                     jq \
                     ntp \
+                    puppet \
                     rsync \
                     rubygems \
                     screen \
