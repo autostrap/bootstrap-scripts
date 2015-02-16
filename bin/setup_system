@@ -21,7 +21,7 @@ chown root:root /root/.ssh/authorized_keys
 # Use Puppetlabs' repository for up-to-date puppet packages
 . /etc/lsb-release
 wget -c https://apt.puppetlabs.com/puppetlabs-release-${DISTRIB_CODENAME}.deb &&
-dpkg -i puppetlabs-release-${DISTRIB_CODENAME}.&&
+dpkg -i puppetlabs-release-${DISTRIB_CODENAME}.deb &&
 
 aptitude update
 
