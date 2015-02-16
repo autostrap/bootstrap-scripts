@@ -4,7 +4,7 @@
 
 # 2015, j.grassler@syseleven.de
 
-exec > /var/log/initialize_instance.log 2>&1
+exec >> /var/log/initialize_instance.log 2>&1
 set -x
 
 config_dir=/opt/config/sys11
@@ -65,7 +65,7 @@ gen_entries()
 
   find "${dir}/${topicdir}" -type f \
     | grep '\.yaml$' \
-    | sed -e 's/\.yaml//' \
+    | sed -e 's/\.yaml$//' \
     | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
     | sed 's/^/  - /'
   }
