@@ -28,11 +28,13 @@ aptitude update
 aptitude install -y \
                     avahi-daemon \
                     bash-completion \
+                    build-essential \
                     ethtool \
                     git \
                     jq \
                     ntp \
                     puppet \
+                    python-pip \
                     rsync \
                     rubygems \
                     screen \
