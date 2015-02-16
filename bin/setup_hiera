@@ -33,9 +33,9 @@ ln -sf /etc/puppet/hiera.yaml /etc/hiera.yaml
 
 cp /opt/override.yaml /etc/puppet/hieradata/override.yaml
 
-ln -s ${scripts_dir}/bin/run_puppet_hiera /usr/local/bin
-ln -s ${scripts_dir}/bin/really_run_puppet_agent /usr/local/bin
-ln -s ${scripts_dir}/bin/run_repodeploy /usr/local/bin
+ln -s ${scripts_dir}/bin/run_puppet_hiera /usr/local/sbin
+ln -s ${scripts_dir}/bin/really_run_puppet_agent /usr/local/sbin
+ln -s ${scripts_dir}/bin/run_repodeploy /usr/local/sbin
 
 cp /opt/openstack-puppet/sys11puppet/files/puppetmaster_site.pp /etc/puppet/manifests/site.pp
 
