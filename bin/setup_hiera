@@ -26,7 +26,7 @@ cat > /etc/puppet/hiera.yaml <<EOF
     :datasource: data
 
 :hierarchy:
-  -override
+  - override
 EOF
 
 gen_hierarchy -d ${config_dir} ${sys11_hiera_opts} -n sys11-defaults ${sys11_topics} >> /etc/puppet/hiera.yaml
