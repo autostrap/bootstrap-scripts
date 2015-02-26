@@ -56,8 +56,6 @@ export repodeploy_branch
 export scripts_dir
 : ${config_dir:=/opt/config/sys11}
 export config_dir
-: ${modules_path:="/opt/openstack-puppet:/opt/puppet-upstream:/etc/puppet/modules"}
-export modules_path
 
 bootstrap_stage=initialize_instance
 
