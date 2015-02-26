@@ -6,4 +6,4 @@ if [ ! -t 0 ]; then # Off switch for logging (useful for interactive invocation 
   set -x
 fi
 
-puppet apply /etc/puppet/manifests/site.pp --modulepath /etc/puppet/modules:/opt/openstack-puppet:/opt/puppet-upstream:/opt/puppet-modules-vcsrepo "$@"
+puppet apply /etc/puppet/manifests/site.pp --modulepath /opt/puppet-modules:/opt/puppet-modules-vcsrepo "$@"
