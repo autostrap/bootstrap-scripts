@@ -40,6 +40,21 @@ ln -s ${scripts_dir}/bin/run_puppet_hiera /usr/local/sbin
 ln -s ${scripts_dir}/bin/really_run_puppet_agent /usr/local/sbin
 ln -s ${scripts_dir}/bin/run_repodeploy /usr/local/sbin
 
-cp /opt/openstack-puppet/sys11puppet/files/puppetmaster_site.pp /etc/puppet/manifests/site.pp
+cat > /etc/puppet/manifests/site.pp <<'EOF'
+# Gets rid of
+#  Warning: The package type's allow_virtual parameter will be changing its default value from false to true in a future release. If you do not want to allow virtual packages, please explicitly set allow_virtual to false.
+#   (at /usr/lib/ruby/site_ruby/1.8/puppet/type.rb:816:in `set_default')
+
+Package{
+  allow_virtual => true,
+}
+
+stage { 'last': }
+stage { 'first': }
+Stage['first'] -> Stage['main']
+Stage['main'] -> Stage['last']
+
+hiera_include('classes')
+EOF
 
 run_repodeploy  # Deploy configured repositories (if any)
