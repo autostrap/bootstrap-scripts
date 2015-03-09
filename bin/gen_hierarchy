@@ -13,27 +13,28 @@ usage()
   echo "  $0 [-c] [-r] [-d <dir>] <topic> [<topic> ...]"
   echo
   echo '  options:'
-  echo '    -c        Include classes.d'
-  echo '    -r        Include repos.d'
-  echo '    -d <dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
-  echo '    -n <name> Prefix hierarchy entries with <name> (defaults to "sys11-config")'
+  echo '    --config        Include config.d for specified topics'
+  echo '    --classes       Include classes.d for specified topics'
+  echo '    --repos         Include repos.d for specified topics'
+  echo '    --dir <dir>     Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
+  echo '    --prefix <name> Prefix hierarchy entries with <name> (defaults to "sys11-config")'
   }
 
 while [[ $1 ]]; do
   case $1 in
-    -c)
+    --classes)
       include_classes=1
       shift 1
       ;;
-    -r)
+    --repos)
       include_repos=1
       shift 1
       ;;
-    -d)
+    -dir)
       config_dir=$2
       shift 2
       ;;
-    -n)
+    --prefix)
       config_name=$2
       shift 2
       ;;
