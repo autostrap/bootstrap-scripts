@@ -65,7 +65,7 @@ gen_entries()
     | grep '\.yaml$' \
     | sed -e 's/\.yaml$//' \
     | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
-    | sed 's/^/  - "/'
+    | sed 's/^/  - "/' \
     | sed 's/$/"/'
   }
 
