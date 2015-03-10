@@ -28,23 +28,24 @@ EOF
 # Deploy topic configuration for puppet master
 
 if [ $project_topics != 'null' ]; then
-gen_hierarchy --dir ${project_dir} \
+gen_hierarchy --dir ${config_dir} \
               --include nodes.d --include nodetypes.d --include config.d --include repos.d \
               --prefix '%{::fqdn}/project-config' ${project_topics} \
               >> /etc/puppet/hiera.yaml
 fi
 
-mkdir -p /etc/puppet/hieradata/project-config
+ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
+
 
 # Deploy bootstrap topic configurations
 
-gen_hierarchy --dir ${config_dir} \
+gen_hierarchy --dir ${sys11_config_dir} \
               --include classes.d --include config.d --include repos.d \
               --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics} \
               >> /etc/puppet/hiera.yaml
 
 mkdir -p /etc/puppet/hieradata/$(facter -p fqdn)  # Keeps puppetmaster's bootstrap classes from being declared on agents.
-ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/$(facter -p fqdn)/sys11-defaults
+ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/$(facter -p fqdn)/sys11-defaults
 
 ln -sf /etc/puppet/hiera.yaml /etc/hiera.yaml
 

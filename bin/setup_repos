@@ -5,4 +5,5 @@ set -x
 # 2014, j.grassler@syseleven.de
 
 git clone --branch "${config_branch}" "${config_repo}" "${config_dir}"
+git clone --branch "${sys11_config_branch}" "${sys11_config_repo}" "${sys11_config_dir}"
 git clone --branch "${repodeploy_branch}" "${repodeploy_repo}" /opt/puppet-modules/repodeploy
