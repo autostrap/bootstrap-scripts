@@ -1,0 +1,4 @@
+#/usr/bin/env bash
+# 2015, s.andres@syseleven.de
+
+hiera -j <(facter_to_hiera "$@") -h repodeploy::repos

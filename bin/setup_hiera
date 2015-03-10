@@ -40,9 +40,10 @@ ln -sf /etc/puppet/hiera.yaml /etc/hiera.yaml
 
 cp /opt/override.yaml /etc/puppet/hieradata/override.yaml
 
-ln -s ${scripts_dir}/bin/run_puppet_hiera /usr/local/sbin
-ln -s ${scripts_dir}/bin/really_run_puppet_agent /usr/local/sbin
-ln -s ${scripts_dir}/bin/run_repodeploy /usr/local/sbin
+programs=(/bin/run_puppet_hiera /bin/really_run_puppet_agent /bin/run_repodeploy /bin/run_repodeploy /bin/facter_to_hiera /bin/show_pm_repos)
+for program in "${programs[@]}"; do
+    ln -s ${scripts_dir}${program} /usr/local/sbin
+done
 
 cat > /etc/puppet/manifests/site.pp <<'EOF'
 # Gets rid of
