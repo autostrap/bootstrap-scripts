@@ -2,8 +2,8 @@
 
 set -x
 
-sys11_topics="$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)"
-project_topics="$(jq -r .meta.project_topics /config/openstack/latest/meta_data.json)"
+sys11_topics=$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)
+project_topics=$(jq -r .meta.project_topics /config/openstack/latest/meta_data.json)
 
 if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
   sys11_topics="base firewall"
@@ -25,16 +25,38 @@ cat > /etc/puppet/hiera.yaml <<EOF
   - override
 EOF
 
-# Deploy topic configuration for puppet master
 
-if [ $project_topics != 'null' ]; then
+
+
+
+# Deploy topic configuration from project repository(if applicable)
+
+if [ "$project_topics" != 'null' ]; then
+
+
+echo "  - \"${config_dir}/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
+echo "  - \"${config_dir}/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
+
+# Generate hierarchy entries for project specific configuration...
+
 gen_hierarchy --dir ${config_dir} \
-              --include nodes.d --include nodetypes.d --include config.d --include repos.d \
+              --include config.d --include repos.d \
               --prefix '%{::fqdn}/project-config' ${project_topics} \
               >> /etc/puppet/hiera.yaml
-fi
+
+# ...and for sys11 default configuration.
+
+gen_hierarchy --dir ${sys11_config_dir} \
+              --include config.d --include repos.d \
+              --prefix '%{::fqdn}/project-config' ${project_topics} \
+              >> /etc/puppet/hiera.yaml
+
+# Symlink configuration directories for project specific configurations.
 
 ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
+ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
+
+fi
 
 
 # Deploy bootstrap topic configurations
