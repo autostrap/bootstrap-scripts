@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
+# 2015, j.grassler@syseleven.de
 
 # gen_hierarchy - Generate Hiera hierarchy array for a cloudstrap configuration checkout
-
-# 2015, j.grassler@syseleven.de
 
 config_dir=/opt/config/sys11
 config_name=sys11
