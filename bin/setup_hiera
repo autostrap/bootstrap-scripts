@@ -29,9 +29,13 @@ cat > /etc/puppet/hiera.yaml <<EOF
   - override
 EOF
 
-gen_hierarchy -d ${config_dir} ${sys11_hiera_opts} -n sys11-defaults ${sys11_topics} >> /etc/puppet/hiera.yaml
+gen_hierarchy --dir ${config_dir} \
+              --include classes.d --include config.d --include repos.d \
+              --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics} \
+              >> /etc/puppet/hiera.yaml
 
-ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-defaults
+mkdir -p /etc/puppet/hieradata/$(facter -p fqdn)  # Keeps puppetmaster's bootstrap classes from being declared on agents.
+ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/$(facter -p fqdn)/sys11-defaults
 ln -sf /etc/puppet/hiera.yaml /etc/hiera.yaml
 
 cp /opt/override.yaml /etc/puppet/hieradata/override.yaml

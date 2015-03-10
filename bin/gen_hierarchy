@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
+# 2015, j.grassler@syseleven.de
 
 # gen_hierarchy - Generate Hiera hierarchy array for a cloudstrap configuration checkout
-
-# 2015, j.grassler@syseleven.de
 
 config_dir=/opt/config/sys11
 config_name=sys11
@@ -10,31 +9,26 @@ config_name=sys11
 usage()
   {
   echo 'usage:'
-  echo "  $0 [-c] [-r] [-d <dir>] <topic> [<topic> ...]"
+  echo "  $0 [--dir <source dir>] --include <include> [--include <include> ...] <topic> [<topic> ...]"
   echo
   echo '  options:'
-  echo '    -c        Include classes.d'
-  echo '    -r        Include repos.d'
-  echo '    -d <dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
-  echo '    -n <name> Prefix hierarchy entries with <name> (defaults to "sys11-config")'
+  echo '    --dir <source dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
+  echo '    --prefix <name>     Prefix hierarchy entries with <name>. Can include facts. (defaults to "sys11-config")'
+  echo "    --include <subdir>  Include subdirectory <subdir> of <source dir> in hierarchy. May occur several times."
   }
 
 while [[ $1 ]]; do
   case $1 in
-    -c)
-      include_classes=1
-      shift 1
-      ;;
-    -r)
-      include_repos=1
-      shift 1
-      ;;
-    -d)
+    --dir)
       config_dir=$2
       shift 2
       ;;
-    -n)
+    --prefix)
       config_name=$2
+      shift 2
+      ;;
+    --include)
+      includes+=("$2")
       shift 2
       ;;
     -h)
@@ -64,12 +58,14 @@ gen_entries()
     | grep '\.yaml$' \
     | sed -e 's/\.yaml$//' \
     | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
-    | sed 's/^/  - /'
+    | sed 's/^/  - "/' \
+    | sed 's/$/"/'
   }
 
-for topic in ${args[*]}
+for include in ${includes[*]}
+do
+  for topic in ${args[*]}
   do
-  (( include_classes )) && gen_entries "${config_dir}/puppet/hieradata/" 'classes.d' "$config_name" | grep $topic
-  gen_entries "${config_dir}/puppet/hieradata/" 'config.d' "$config_name" | grep $topic
-  (( include_repos )) && gen_entries "${config_dir}/puppet/hieradata/" 'repos.d' "$config_name" | grep $topic
+    gen_entries "${config_dir}/puppet/hieradata/" "$include" "$config_name" | grep $topic
   done
+done
