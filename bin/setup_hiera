@@ -33,22 +33,22 @@ EOF
 
 if [ "$project_topics" != 'null' ]; then
 
-
-echo "  - \"${config_dir}/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
-echo "  - \"${config_dir}/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
+# Node and node type specific classes overrides from project configuration.
+echo "  - \"project-config/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
+echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
 
 # Generate hierarchy entries for project specific configuration...
 
 gen_hierarchy --dir ${config_dir} \
               --include config.d --include repos.d \
-              --prefix '%{::fqdn}/project-config' ${project_topics} \
+              --prefix 'project-config' ${project_topics} \
               >> /etc/puppet/hiera.yaml
 
 # ...and for sys11 default configuration.
 
 gen_hierarchy --dir ${sys11_config_dir} \
               --include config.d --include repos.d \
-              --prefix '%{::fqdn}/project-config' ${project_topics} \
+              --prefix 'sys11-config' ${project_topics} \
               >> /etc/puppet/hiera.yaml
 
 # Symlink configuration directories for project specific configurations.
