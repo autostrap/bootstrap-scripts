@@ -63,7 +63,7 @@ name=$(hostname -s)
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scripts_dir}/bin
 
-for i in setup_system setup_puppet_modules setup_repos setup_hiera
+for i in setup_system setup_puppet_modules setup_repos setup_hiera run_puppet_hiera
 do
   launch_logged $i 
 done
