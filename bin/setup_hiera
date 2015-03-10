@@ -31,7 +31,7 @@ EOF
 
 gen_hierarchy --dir ${config_dir} \
               --include classes.d --include config.d --include repos.d \
-              --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics}
+              --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics} \
               >> /etc/puppet/hiera.yaml
 
 mkdir -p /etc/puppet/hieradata/$(facter -p fqdn)  # Keeps puppetmaster's bootstrap classes from being declared on agents.
