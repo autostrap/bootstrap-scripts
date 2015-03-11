@@ -9,6 +9,7 @@ require 'rubygems'
 require 'hiera'
 require 'puppet'
 require 'json'
+require 'optparse'
 
 def replace_facts(input, replaceby = {})
     """
@@ -24,6 +25,15 @@ def replace_facts(input, replaceby = {})
     input
 end
 
+options = OpenStruct.new
+options.show_files = false
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: hiera_dump [options]"
+
+  opts.on("-s", "--show-files", "Show all variables with the files they came from (without variables values)"){ |v| options.show_files = v }
+end.parse!
+
 hiera = Hiera.new(:config => "/etc/puppet/hiera.yaml")
 hiera_yaml = hiera.config
 datadir = hiera_yaml[:yaml][:datadir]
@@ -36,29 +46,58 @@ hiera_yaml[:hierarchy].each  { |x|
 }
 
 node_vars = []
+node_vars_files = {}
 node_classes = []
-hierarchy.each { |x|
-    if File.exist?(x + '.yaml')
-        myyaml = YAML.load_file(x + '.yaml')
-        if myyaml
-            for key in myyaml.keys
-                if key == 'classes'
-                    node_classes << myyaml['classes']
-                    next
-                end
-                
-                if not node_vars.include?(key)
-                    node_vars << key
+if not options.show_files
+    hierarchy.each { |x|
+        if File.exist?(x + '.yaml')
+            myyaml = YAML.load_file(x + '.yaml')
+            if myyaml
+                for key in myyaml.keys
+                    if key == 'classes'
+                        node_classes << myyaml['classes']
+                        next
+                    end
+
+                    if not node_vars.include?(key)
+                        node_vars << key
+
+                    end
                 end
             end
         end
-    end
-}
+    }
+else
+    hierarchy.each { |x|
+        if File.exist?(x + '.yaml')
+            myyaml = YAML.load_file(x + '.yaml')
+            if myyaml
+                for key in myyaml.keys
+                    if not node_vars.include?(key)
+                        node_vars << key
+                    end
 
-puts '# Classes'
-puts 'classes: %s' % [node_classes.flatten.uniq]
-puts '','# All variables'
-for node_var in node_vars
-    puts "%s: %s" % [ node_var, hiera.lookup(node_var, nil, scope) ]
+                    x.slice! datadir
+                    if not node_vars_files[key].kind_of?(Array)
+                        node_vars_files[key] = []
+                    end
+                    node_vars_files[key] << x
+                end
+            end
+        end
+    }
+
 end
 
+if not options.show_files
+    puts '# Classes'
+    puts 'classes: %s' % [node_classes.flatten.uniq]
+    puts '','# All variables'
+    for node_var in node_vars
+        puts "%s: %s" % [ node_var, hiera.lookup(node_var, nil, scope) ]
+    end
+else
+    for node_var in node_vars
+        puts "%s:\n%s" % [ node_var, node_vars_files[node_var].to_yaml[5..-1] ]
+    end
+end
