@@ -3,7 +3,7 @@
 set -x
 
 sys11_topics=$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)
-project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/sys11-topics | sort | uniq)
+project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/sys11-topics | sort -u)
 
 if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
   sys11_topics="base firewall"
