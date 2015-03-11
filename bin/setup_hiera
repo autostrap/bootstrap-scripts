@@ -40,7 +40,7 @@ echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yam
 # Generate hierarchy entries for project specific configuration...
 
 gen_hierarchy --dir ${config_dir} \
-              --all \
+              --all-topics \
               --prefix 'project-config' \
               >> /etc/puppet/hiera.yaml
 
