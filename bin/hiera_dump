@@ -1,0 +1,110 @@
+#!/usr/bin/env ruby
+# 2015, s.andres@syseleven.de
+# 
+# This tools tries to dump all variables set by hiera for a given node (default local node)
+# You can fake other nodes with all facts by hiera_dump fqdn=example.com osfamily=RedHat
+# 
+
+require 'rubygems'
+require 'hiera'
+require 'puppet'
+require 'json'
+require 'optparse'
+
+def replace_facts(input, replaceby = {})
+    """
+    replace occuring hiera variables like %{::fqdn} by the value of
+    replaceby[::fqdn] if available, but for all keys in replaceby = {}
+    """
+
+    replaceby.keys.each { |x|
+        if input.include? x
+            input = input.gsub(/%\{#{x}\}/, replaceby[x])
+        end
+    }
+    input
+end
+
+options = OpenStruct.new
+options.show_files = false
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: hiera_dump [options]"
+
+  opts.on("-s", "--show-files", "Show all variables with the files they came from (without variables values)"){ |v| options.show_files = v }
+end.parse!
+
+hiera = Hiera.new(:config => "/etc/puppet/hiera.yaml")
+hiera_yaml = hiera.config
+datadir = hiera_yaml[:yaml][:datadir]
+
+if not ARGV.empty?
+    scope = `facter_to_hiera --key #{ARGV.join('--key ')}`
+else
+    scope = `facter_to_hiera`
+end
+
+scope = JSON.load(scope)
+hierarchy = []
+hiera_yaml[:hierarchy].each  { |x| 
+    hierarchy << replace_facts(datadir + '/' + x, scope)
+}
+
+node_vars = []
+node_vars_files = {}
+node_classes = []
+if not options.show_files
+    hierarchy.each { |x|
+        if File.exist?(x + '.yaml')
+            myyaml = YAML.load_file(x + '.yaml')
+            if myyaml
+                for key in myyaml.keys
+                    if key == 'classes'
+                        node_classes << myyaml['classes']
+                        next
+                    end
+
+                    if not node_vars.include?(key)
+                        node_vars << key
+
+                    end
+                end
+            end
+        end
+    }
+else
+    hierarchy.each { |x|
+        if File.exist?(x + '.yaml')
+            myyaml = YAML.load_file(x + '.yaml')
+            if myyaml
+                for key in myyaml.keys
+                    if not node_vars.include?(key)
+                        node_vars << key
+                    end
+
+                    x.slice! datadir
+                    if not node_vars_files[key].kind_of?(Array)
+                        node_vars_files[key] = []
+                    end
+                    node_vars_files[key] << x
+                end
+            end
+        end
+    }
+
+end
+
+if not options.show_files
+    puts '# Classes'
+    puts 'classes: %s' % [node_classes.flatten.uniq]
+    puts '','# All variables'
+    for node_var in node_vars
+        puts "%s: %s" % [ node_var, hiera.lookup(node_var, nil, scope) ]
+    end
+else
+    puts "# All variables + origin files"
+    # .to_yaml[5..-1] removes the " --- " header from .to_yaml
+    for node_var in node_vars
+        puts "%s:\n%s" % [ node_var, node_vars_files[node_var].to_yaml[5..-1] ]
+    end
+end
