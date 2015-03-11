@@ -103,6 +103,7 @@ if not options.show_files
     end
 else
     puts "# All variables + origin files"
+    # .to_yaml[5..-1] removes the " --- " header from .to_yaml
     for node_var in node_vars
         puts "%s:\n%s" % [ node_var, node_vars_files[node_var].to_yaml[5..-1] ]
     end
