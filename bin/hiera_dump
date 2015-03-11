@@ -2,7 +2,7 @@
 # 2015, s.andres@syseleven.de
 # 
 # This tools tries to dump all variables set by hiera for a given node (default local node)
-# You can fake other nodes with all facts by hiera_dump --key fqdn=example.com --key osfamily=RedHat
+# You can fake other nodes with all facts by hiera_dump fqdn=example.com osfamily=RedHat
 # 
 
 require 'rubygems'
@@ -38,7 +38,8 @@ hiera = Hiera.new(:config => "/etc/puppet/hiera.yaml")
 hiera_yaml = hiera.config
 datadir = hiera_yaml[:yaml][:datadir]
 
-scope = `facter_to_hiera #{ARGV.join(' ')}`
+scope = `facter_to_hiera --key #{ARGV.join('--key ')}`
+puts scope
 scope = JSON.load(scope)
 hierarchy = []
 hiera_yaml[:hierarchy].each  { |x| 
