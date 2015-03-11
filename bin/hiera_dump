@@ -17,7 +17,6 @@ def replace_facts(input, replaceby = {})
     """
 
     replaceby.keys.each { |x|
-        #puts x
         if input.include? x
             input = input.gsub(/%\{#{x}\}/, replaceby[x])
         end
