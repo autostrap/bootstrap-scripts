@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+# 2015, s.andres@syseleven.de
+# 
+# This tools tries to dump all variables set by hiera for a given node (default local node)
+# You can fake other nodes with all facts by hiera_dump --key fqdn=example.com --key osfamily=RedHat
+# 
+
+require 'rubygems'
+require 'hiera'
+require 'puppet'
+require 'json'
+
+def replace_facts(input, replaceby = {})
+    """
+    replace occuring hiera variables like %{::fqdn} by the value of
+    replaceby[::fqdn] if available, but for all keys in replaceby = {}
+    """
+
+    replaceby.keys.each { |x|
+        #puts x
+        if input.include? x
+            input = input.gsub(/%\{#{x}\}/, replaceby[x])
+        end
+    }
+    ret = input
+    ret
+end
+
+hiera = Hiera.new(:config => "/etc/puppet/hiera.yaml")
+hiera_yaml = hiera.config
+datadir = hiera_yaml[:yaml][:datadir]
+
+scope = `facter_to_hiera #{ARGV.join(' ')}`
+scope = JSON.load(scope)
+hierarchy = []
+hiera_yaml[:hierarchy].each  { |x| 
+    hierarchy << replace_facts(datadir + '/' + x, scope)
+}
+
+node_vars = []
+node_classes = []
+hierarchy.each { |x|
+    if File.exist?(x + '.yaml')
+        myyaml = YAML.load_file(x + '.yaml')
+        if myyaml
+            for key in myyaml.keys
+                if key == 'classes'
+                    node_classes << myyaml['classes']
+                    next
+                end
+                
+                if not node_vars.include?(key)
+                    node_vars << key
+                end
+            end
+        end
+    end
+}
+
+puts '# Classes'
+puts 'classes: %s' % [node_classes.flatten.uniq]
+puts '','# All variables'
+for node_var in node_vars
+    puts "%s: %s" % [ node_var, hiera.lookup(node_var, nil, scope) ]
+end
+
