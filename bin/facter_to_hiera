@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+# 2015, s.andres@syseleven.de
+
+import json
+import re
+from subprocess import check_output
+from optparse import OptionParser
+
+def process_args():
+
+    parser = OptionParser()
+    parser.add_option("--key", action="append", help="This option takes "
+                    "a <key>=<value> pair as its argument and may be specified "
+                    "multiple times. Existing facts' values that match <key> "
+                    "will be replaced by the specified value. This will only "
+                    "affect facts existing on this system. Non-existent facts "
+                    "will not be added.")
+
+    (options, args) = parser.parse_args()
+
+    return options, args
+
+if __name__ == '__main__':
+    options, args = process_args()
+
+    facts = json.loads(check_output('facter -j', shell=True))
+    facts_new = {}
+    for fact in facts:
+        if options.key:
+            for option in options.key:
+                o = option.split('=')
+                if o[0] == fact:
+                    facts[fact] = o[1]
+
+        fact_replaced = re.sub('(.*)', '::\g<1>', fact)
+        facts_new[fact_replaced] = facts[fact]
+
+    print json.dumps(facts_new)
