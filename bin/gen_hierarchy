@@ -43,6 +43,10 @@ while [[ $1 ]]; do
       usage
       exit 0
       ;;
+    --*) # Unrecognized option
+      echo "warning: unrecognized option: $1" 1>&2
+      shift
+      ;;
     *)
       args+=("$1")
       shift 1
@@ -62,30 +66,22 @@ gen_entries()
   topicdir=$2
   config_name=$3
 
-  if ( $gen_all ); then
-    prefix_exp="s#.*${dir}/*\(.*\)#$config_name/\1#"
-    find_target="${dir}" 
-  else
-    prefix_exp="s#.*\(${topicdir}.*\)#$config_name/\1#"
-    find_target="${dir}/${topicdir}" 
-  fi
-
-  find "$find_target" -type f \
+  find "${dir}/${topicdir}" -type f \
     | grep '\.yaml$' \
     | sed -e 's/\.yaml$//' \
-    | sed "$prefix_exp" \
+    | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
     | sed 's/^/  - "/' \
     | sed 's/$/"/'
   }
 
-if ( $gen_all ); then
-  gen_entries "${config_dir}/puppet/hieradata" "" "$config_name"
-else
-  for include in ${includes[*]}
-  do
+for include in ${includes[*]}
+do
+  if $gen_all; then
+    gen_entries "${config_dir}/puppet/hieradata" "$include" "$config_name"
+  else
     for topic in ${args[*]}
     do
       gen_entries "${config_dir}/puppet/hieradata/" "$include" "$config_name" | grep $topic
     done
-  done
-fi
+  fi
+done
