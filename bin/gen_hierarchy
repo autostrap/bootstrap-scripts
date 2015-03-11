@@ -9,19 +9,27 @@ config_name=sys11
 usage()
   {
   echo 'usage:'
-  echo "  $0 [--dir <source dir>] --include <include> [--include <include> ...] <topic> [<topic> ...]"
+  echo "  $0 [--dir <source dir>] [ --prefix <name> ] --include <include> [--include <include> ...] <topic> [<topic> ...]"
+  echo "  $0 [--dir <source dir>] [ --prefix <name> ] --all"
   echo
   echo '  options:'
+  echo '    --all               Recursively includes all YAML files found in <source dir> in the generated hierarchy.'
   echo '    --dir <source dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
   echo '    --prefix <name>     Prefix hierarchy entries with <name>. Can include facts. (defaults to "sys11-config")'
   echo "    --include <subdir>  Include subdirectory <subdir> of <source dir> in hierarchy. May occur several times."
   }
+
+gen_all=false
 
 while [[ $1 ]]; do
   case $1 in
     --dir)
       config_dir=$2
       shift 2
+      ;;
+    --all)
+      gen_all=true
+      shift
       ;;
     --prefix)
       config_name=$2
@@ -42,7 +50,7 @@ while [[ $1 ]]; do
    esac
 done
 
-if [ -z "$args" ]; then
+if [ -z "$args" -a ! $gen_all ]; then
   usage
   exit 1
 fi
@@ -54,18 +62,30 @@ gen_entries()
   topicdir=$2
   config_name=$3
 
-  find "${dir}/${topicdir}" -type f \
+  if ( $gen_all ); then
+    prefix_exp="s#.*${dir}/*\(.*\)#$config_name/\1#"
+    find_target="${dir}" 
+  else
+    prefix_exp="s#.*\(${topicdir}.*\)#$config_name/\1#"
+    find_target="${dir}/${topicdir}" 
+  fi
+
+  find "$find_target" -type f \
     | grep '\.yaml$' \
     | sed -e 's/\.yaml$//' \
-    | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
+    | sed "$prefix_exp" \
     | sed 's/^/  - "/' \
     | sed 's/$/"/'
   }
 
-for include in ${includes[*]}
-do
-  for topic in ${args[*]}
+if ( $gen_all ); then
+  gen_entries "${config_dir}/puppet/hieradata" "" "$config_name"
+else
+  for include in ${includes[*]}
   do
-    gen_entries "${config_dir}/puppet/hieradata/" "$include" "$config_name" | grep $topic
+    for topic in ${args[*]}
+    do
+      gen_entries "${config_dir}/puppet/hieradata/" "$include" "$config_name" | grep $topic
+    done
   done
-done
+fi
