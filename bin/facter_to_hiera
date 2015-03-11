@@ -9,15 +9,14 @@ from optparse import OptionParser
 def process_args():
 
     parser = OptionParser()
-    parser.add_option("--key", action="append", help='You may pass key=value '
-                        'multiple times to this parameters.'
-                        'If key is contained in the facter output, it will change its value to the value passed.')
+    parser.add_option("--key", action="append", help="This option takes "
+                    "a <key>=<value> pair as its argument and may be specified "
+                    "multiple times. Existing facts' values that match <key> "
+                    "will be replaced by the specified value. This will only "
+                    "affect facts existing on this system. Non-existent facts "
+                    "will not be added.")
 
     (options, args) = parser.parse_args()
-
-    #if not options.key and not options.showall:
-    #    parser.error("option -k is mandatory")
-
 
     return options, args
 
@@ -31,7 +30,6 @@ if __name__ == '__main__':
             for option in options.key:
                 o = option.split('=')
                 if o[0] == fact:
-                    #print "change from %s to %s" % (fact, o[1])
                     facts[fact] = o[1]
 
         fact_replaced = re.sub('(.*)', '::\g<1>', fact)
