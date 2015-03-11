@@ -21,8 +21,7 @@ def replace_facts(input, replaceby = {})
             input = input.gsub(/%\{#{x}\}/, replaceby[x])
         end
     }
-    ret = input
-    ret
+    input
 end
 
 hiera = Hiera.new(:config => "/etc/puppet/hiera.yaml")
