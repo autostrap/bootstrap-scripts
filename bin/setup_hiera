@@ -3,7 +3,7 @@
 set -x
 
 sys11_topics=$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)
-project_topics=$(jq -r .meta.project_topics /config/openstack/latest/meta_data.json)
+project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/sys11-topics | sort -u)
 
 if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
   sys11_topics="base firewall"
@@ -40,8 +40,9 @@ echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yam
 # Generate hierarchy entries for project specific configuration...
 
 gen_hierarchy --dir ${config_dir} \
+              --all-topics \
               --include config.d --include repos.d \
-              --prefix 'project-config' ${project_topics} \
+              --prefix 'project-config' \
               >> /etc/puppet/hiera.yaml
 
 # ...and for sys11 default configuration.
