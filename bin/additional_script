@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# 2015, j.grassler@syseleven.de
+
+# Launches a project's additional bootstrap script if present.
+
+if [ -x ${config_dir}/scripts.d/additional ]; then
+  bootstrap_stage=additional_script
+  launch_logged ${config_dir}/scripts.d/additional 
+  log_stage_finished
+fi
