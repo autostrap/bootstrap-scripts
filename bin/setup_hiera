@@ -4,6 +4,7 @@ set -x
 
 sys11_topics=$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)
 project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/sys11-topics | sort -u)
+project_classes=$(jq -r .meta.project_classes /config/openstack/latest/meta_data.json)
 
 if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
   sys11_topics="base firewall"
@@ -29,33 +30,40 @@ EOF
 
 
 
-# Deploy topic configuration from project repository(if applicable)
+# Deploy topic configuration from project repository (if applicable).
 
-if [ "$project_topics" != 'null' ]; then
+if [ -d "$config_dir" ]; then
 
-# Node and node type specific classes overrides from project configuration.
-echo "  - \"project-config/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
-echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
+  # Only add these entries if explicitely asked for, since they cause the puppetmaster side
+  # configuration to be deployed during bootstrapping.
 
-# Generate hierarchy entries for project specific configuration...
+  if [ "$project_classes" = 'true' ]; then
+    # Node and node type specific classes overrides from project configuration.
+    echo "  - \"project-config/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
+    echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
+  fi
 
-gen_hierarchy --dir ${config_dir} \
-              --all-topics \
-              --include config.d --include repos.d \
-              --prefix 'project-config' \
-              >> /etc/puppet/hiera.yaml
+  # Generate hierarchy entries for project specific configuration...
 
-# ...and for sys11 default configuration.
+  gen_hierarchy --dir ${config_dir} \
+                --all-topics \
+                --include config.d --include repos.d \
+                --prefix 'project-config' \
+                >> /etc/puppet/hiera.yaml
 
-gen_hierarchy --dir ${sys11_config_dir} \
-              --include config.d --include repos.d \
-              --prefix 'sys11-config' ${project_topics} \
-              >> /etc/puppet/hiera.yaml
+  if [ -n "$project_topics" ]; then # Only makes sense if project topics have been defined.
+    # ...and for sys11 default configuration.
 
-# Symlink configuration directories for project specific configurations.
+    gen_hierarchy --dir ${sys11_config_dir} \
+                  --include config.d --include repos.d \
+                  --prefix 'sys11-config' ${project_topics} \
+                  >> /etc/puppet/hiera.yaml
+  fi
 
-ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
-ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
+  # Symlink configuration directories for project specific configurations.
+
+  ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
+  ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
 
 fi
 

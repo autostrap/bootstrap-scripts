@@ -66,7 +66,7 @@ gen_entries()
   topicdir=$2
   config_name=$3
 
-  find "${dir}/${topicdir}" -type f \
+  find -L "${dir}/${topicdir}" -type f \
     | grep '\.yaml$' \
     | sed -e 's/\.yaml$//' \
     | sed "s#.*\(${topicdir}.*\)#$config_name/\1#" \
