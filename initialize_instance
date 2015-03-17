@@ -63,13 +63,11 @@ name=$(hostname -s)
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scripts_dir}/bin
 
-for i in setup_system setup_puppet_modules setup_repos setup_hiera run_puppet_hiera
+for i in setup_system setup_puppet_modules setup_repos setup_hiera run_puppet_hiera additional_script
 do
   launch_logged $i 
 done
 
 log_stage_finished
-
-[[ $additional_script ]] && "$scripts_dir/$additional_script"
 
 echo "finished $0"
