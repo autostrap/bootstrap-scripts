@@ -27,13 +27,6 @@ fi
 exec > /var/log/initialize_instance.log 2>&1
 set -x
 
-# Get environment from cloud_params if available (MAAS uses this)
-
-if [ -f /etc/cloud_params ]; then
-  . /etc/cloud_params
-fi
-
-
 # Repositories:
 
 : ${config_repo:=git@gitlab.syseleven.de:cloudstrap/sys11-config.git}
