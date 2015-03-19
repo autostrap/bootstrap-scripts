@@ -50,7 +50,7 @@ export scripts_dir
 : ${config_dir:=/opt/config/sys11}
 export config_dir
 
-bootstrap_stage=initialize_instance
+export bootstrap_stage=initialize_instance
 
 name=$(hostname -s)
 
