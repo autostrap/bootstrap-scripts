@@ -15,5 +15,9 @@ puppet module install stephenrjohnson-puppet &&
 # requirements for dashboard
 puppet module install puppetlabs-mysql &&
 puppet module install puppetlabs-vcsrepo &&
+rm -rf /etc/puppet/modules/vcsrepo && 
+cd /etc/puppet/modules/ &&
+git clone --depth 1 https://github.com/puppetlabs/puppetlabs-vcsrepo.git vcsrepo &&
+cd vcsrepo && git checkout 9a955b8746f373a1a3e47ebf67d4186b98e0094f
 
 puppet module uninstall --force puppetlabs-firewall # Conflicts with the more recent version we pull from git.
