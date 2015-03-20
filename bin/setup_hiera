@@ -75,6 +75,10 @@ gen_hierarchy --dir ${sys11_config_dir} \
               --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics} \
               >> /etc/puppet/hiera.yaml
 
+# Add global.yaml
+
+echo '  - "sys11-config/global"' >> /etc/puppet/hiera.yaml
+
 mkdir -p /etc/puppet/hieradata/$(facter -p fqdn)  # Keeps puppetmaster's bootstrap classes from being declared on agents.
 ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/$(facter -p fqdn)/sys11-defaults
 
