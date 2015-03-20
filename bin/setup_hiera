@@ -72,7 +72,7 @@ fi
 
 gen_hierarchy --dir ${sys11_config_dir} \
               --include classes.d --include config.d --include repos.d \
-              --prefix '%{::fqdn}/sys11-config' ${sys11_topics} \
+              --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics} \
               >> /etc/puppet/hiera.yaml
 
 # Add global.yaml
