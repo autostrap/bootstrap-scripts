@@ -7,7 +7,7 @@
 lockdir=/var/lib/puppet/state/
 lockfile=$lockdir/agent_catalog_run.lock
 
-if [[ ! $lockfile ]]; then
+if [[ ! -f $lockfile ]]; then
   #echo >&2 "successfully acquired lock"
   echo $$ > $lockfile
   # Remove lockdir when the script finishes, or when it receives a signal
