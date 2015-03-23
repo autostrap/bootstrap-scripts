@@ -29,15 +29,15 @@ set -x
 
 # Repositories:
 
-: ${config_repo:=git@gitlab.syseleven.de:cloudstrap/sys11-config.git}
+: ${config_repo:=https://github.com/syseleven/sys11-config.git}
 export config_repo
 : ${config_branch:=master}
 export config_branch
-: ${puppet_repo:=git@gitlab.syseleven.de:openstack/puppet-sys11puppet.git}
+: ${puppet_repo:=https://github.com/syseleven/puppet-sys11puppet.git}
 export puppet_repo
 : ${puppet_branch:=master}
 export puppet_branch
-: ${repodeploy_repo:=git@gitlab.syseleven.de:openstack/puppet-repodeploy.git}
+: ${repodeploy_repo:=https://github.com/syseleven/puppet-repodeploy.git}
 export repodeploy_repo
 : ${repodeploy_branch:=master}
 export repodeploy_branch
