@@ -11,14 +11,14 @@ if [[ ! $lockfile ]]; then
   #echo >&2 "successfully acquired lock"
   echo $$ > $lockfile
   # Remove lockdir when the script finishes, or when it receives a signal
-  trap 'rm -rf "$lockdir"' 0    # remove directory when script finishes
+  trap 'rm -rf "$lockfile"' 0    # remove directory when script finishes
   trap "exit 2" 1 2 3 15  # terminate script when receiving signal
 
   # Optionally create temporary files in this directory, because
   # they will be removed automatically:
   tmpfile=$lockdir/filelist
 else
-  echo >&2 "cannot acquire lock, giving up on $lockdir"
+  echo >&2 "cannot acquire lock, giving up on $lockfile"
   exit 0
 fi
 
