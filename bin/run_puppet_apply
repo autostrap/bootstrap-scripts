@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# 2015, s.andres@syseleven.de
+#
+# prevent puppet agent from running when puppet apply is already running
+#
+
+lockdir=/var/lib/puppet/state/
+lockfile=$lockdir/agent_catalog_run.lock
+
+if [[ ! $lockfile ]]; then
+  #echo >&2 "successfully acquired lock"
+  echo $$ > $lockfile
+  # Remove lockdir when the script finishes, or when it receives a signal
+  trap 'rm -rf "$lockdir"' 0    # remove directory when script finishes
+  trap "exit 2" 1 2 3 15  # terminate script when receiving signal
+
+  # Optionally create temporary files in this directory, because
+  # they will be removed automatically:
+  tmpfile=$lockdir/filelist
+else
+  echo >&2 "cannot acquire lock, giving up on $lockdir"
+  exit 0
+fi
+
+
+exec puppet apply "$@"
