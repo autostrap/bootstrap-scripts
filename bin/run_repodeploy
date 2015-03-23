@@ -6,4 +6,4 @@ if [ ! -t 0 ]; then # Off switch for logging (useful for interactive invocation 
   set -x
 fi
 
-puppet apply -e 'include repodeploy' --modulepath /etc/puppet/modules:/opt/puppet-modules
+run_puppet_apply -e 'include repodeploy' --modulepath /etc/puppet/modules:/opt/puppet-modules
