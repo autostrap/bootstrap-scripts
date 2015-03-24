@@ -81,7 +81,7 @@ do
   else
     for topic in ${args[*]}
     do
-      gen_entries "${config_dir}/puppet/hieradata/" "$include" "$config_name" | grep $topic
+      gen_entries "${config_dir}/puppet/hieradata/" "$include" "$config_name" | grep -w $topic
     done
   fi
 done
