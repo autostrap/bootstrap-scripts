@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+
+# 2015, j.grassler@syseleven.de
+
+# This is a stage0 bootstrap script for Cloudstrap deployment in environments
+# without EC2 metadata/user data.
+
+mkdir -p /var/log/cloudstrap
+exec > /var/log/cloudstrap/stage0.log 2>&1
+set -x
+
+# Repository configuration
+
+: ${config_repo:=https://github.com/syseleven/project-config.git}
+export config_repo
+
+: ${config_branch:=master}
+export config_branch
+
+: ${scripts_repo:=https://github.com/syseleven/bootstrap-scripts.git}
+export scripts_repo
+
+: ${scripts_branch:=master}
+export scripts_branch
+
+: ${sys11_config_repo:=https://github.com/syseleven/sys11-config.git}
+export sys11_config_repo
+
+: ${sys11_config_branch:=master}
+export sys11_config_branch
+
+: ${repodeploy_repo:=https://github.com/syseleven/puppet-repodeploy.git}
+export repodeploy_repo
+
+: ${repodeploy_branch:=master}
+export repodeploy_branch
+
+
+# Variables exclusively used by stage0 bootstrapping
+
+: ${override_yaml:=''}
+: ${deploy_key:=''}
+: ${root_password:=''}
+deploykeypath=/root/.ssh/id_deploy
+
+
+# Set root password if a password hash was supplied.
+
+if [ -n "$root_password" ]; then
+  echo 'root:$root_password' | chpasswd -e
+  echo 'ubuntu:$root_password' | chpasswd -e
+fi
+
+
+# Write out override.yaml if supplied.
+
+if [ -n "$override_yaml" ]; then
+  cat > /opt/override.yaml <<'EOF'
+$override_yaml
+EOF
+fi
+
+
+# Configures a deploy key if one is supplied.
+
+setup_deploy_key() 
+  {
+  if [ -z "$deploy_key" ]; then
+    return 0
+  fi
+
+  mkdir -p /root/.ssh/
+  touch $deploykeypath
+  chmod 600 $deploykeypath
+  cat > $deploykeypath <<'EOF'
+$deploy_key
+EOF
+
+    echo "${deploykeypath}" | ssh-keygen -y > "${deploykeypath}.pub"
+
+  cat > /root/.ssh/config <<EOF
+IdentityFile $deploykeypath
+StrictHostKeyChecking=no
+EOF
+}
+
+
+# Sets up git and clones bootstrap-scripts repository.
+
+setup_git()
+  {
+  aptitude update &&
+  aptitude install -y git &&
+  git clone $scripts_repo $scripts_dir &&
+  (cd $scripts_dir ; git checkout $scripts_branch)
+  }
+
+
+
+# Checks for network connectivity and blocks until network is up.
+
+check_net()
+  {
+  url=http://www.github.com
+  start=$(date '+%s')
+  duration=0
+  max_time=900          # Maximum overall time for connection attempts.
+  remainder=$max_time   # Time remaining on the connection attempt clock.
+
+  # Ensures retrying for 15 minutes even in case of connect timeouts
+  # (`curl --connect-timeout 900` will give up after 128s without retrying).
+  while [ $duration -lt $max_time ]
+    do
+      # Ensures exponential backoff for all errors other than connect timeouts.
+      out=$(curl -I --max-time $remainder --retry 9 "$url")
+      status=$?
+
+      now=$(date '+%s')
+      duration=$(($now - $start))
+      remainder=$(($max_time - duration))
+
+      if [ $status -eq 0 ]; then
+        break
+      fi
+    done
+
+  if [ $status -eq 0 ]; then
+    echo "Successfully requested $url after ${duration}s. Network connectivity check successful."
+    return 0
+  fi
+
+  echo "Could not reach $url after ${duration}s. Network connectivity check failed."
+  return 1
+  }
+
+check_net &&
+setup_deploy_key &&
+setup_git &&
+
+$scripts_dir/initialize_instance
+
+env  # log environment
