@@ -103,7 +103,7 @@ fi
 # Write out override.yaml if supplied.
 
 if [ -n "$override_yaml" ]; then
-  cat > /opt/override.yaml <<'EOF'
+  cat > /opt/override.yaml <<EOF
 $override_yaml
 EOF
 fi
@@ -120,7 +120,7 @@ setup_deploy_key()
   mkdir -p /root/.ssh/
   touch $deploykeypath
   chmod 600 $deploykeypath
-  cat > $deploykeypath <<'EOF'
+  cat > $deploykeypath <<EOF
 $deploy_key
 EOF
 
