@@ -35,7 +35,7 @@ Openstack cloud's standard user-data script (Heat resource
 stage0/
 -------
 
-This directory contains various bootstrapping scripts for running Cloudstrap in
+This directory contains bootstrapping scripts for running Cloudstrap in
 non-Openstack environments. These scripts may be used for Cloudstrap
 deployments on bare metal machines, local development VMs or other environments
 without EC2 style metadata/user data passing mechanisms.

@@ -3,11 +3,59 @@
 # 2015, j.grassler@syseleven.de
 
 # This is a stage0 bootstrap script for Cloudstrap deployment in environments
-# without EC2 metadata/user data.
+# without EC2 metadata/user data. It will take the parameters normally passed
+# as properties of sys11::cloudstrap from its environment and will simulate EC2
+# metadata by creating /config/openstack/latest/meta_data.json with a 'meta'
+# hash populated from its '-m' options.
+#
+# usage:
+#
+#  cloudstrap.standalone [ [ -m <key>=<value> ] ... ]
 
 mkdir -p /var/log/cloudstrap
 exec > /var/log/cloudstrap/stage0.log 2>&1
 set -x
+
+# Create a mockup of an Openstack style /config directory for storing metadata
+# passed on the command line.
+
+mkdir -p /config/openstack/latest
+cat > /config/openstack/latest/meta_data.json <<EOF 
+{
+  "meta": {
+EOF
+
+declare -a meta
+
+while [[ $1 ]]; do
+  case "$1" in 
+    -m)
+      shift
+      key=$(echo "$1" | awk '-F=' '{print $1}')
+      value=$(echo "$1" | sed 's/^[^=]*=//')
+      meta+=("    \"${key}\": \"${value}\",")
+      shift
+      ;;
+    *) 
+      args+=("$1"); shift
+      ;;
+  esac
+done
+
+# Remove trailing comma from last metadata entry, JSON is picky about this sort
+# of thing.
+
+meta[$((${#meta[*]} - 1))]=$(echo "${meta[$((${#meta[*]} - 1))]}" | sed 's/,$//')
+
+for (( i=0; i < ${#meta[*]}; i++ )); do
+  echo "${meta[$i]}" >> /tmp/meta_data.json
+done
+
+cat >> /config/openstack/latest/meta_data.json <<EOF 
+$meta
+  },
+}
+EOF
 
 # Repository configuration
 
