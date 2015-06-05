@@ -92,6 +92,13 @@ export repodeploy_branch
 deploykeypath=/root/.ssh/id_deploy
 
 
+# Static repository paths
+
+export scripts_dir=/opt/scripts/sys11
+export config_dir=/opt/config/project
+export sys11_config_dir=/opt/config/sys11
+
+
 # Set root password if a password hash was supplied.
 
 if [ -n "$root_password" ]; then
