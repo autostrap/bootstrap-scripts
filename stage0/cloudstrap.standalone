@@ -48,7 +48,7 @@ done
 meta[$((${#meta[*]} - 1))]=$(echo "${meta[$((${#meta[*]} - 1))]}" | sed 's/,$//')
 
 for (( i=0; i < ${#meta[*]}; i++ )); do
-  echo "${meta[$i]}" >> /tmp/meta_data.json
+  echo "${meta[$i]}" >> /config/openstack/latest/meta_data.json
 done
 
 cat >> /config/openstack/latest/meta_data.json <<EOF 
