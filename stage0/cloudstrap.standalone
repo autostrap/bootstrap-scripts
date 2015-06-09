@@ -40,7 +40,6 @@ def setup_rootpw(pwhash):
                    stdout=subprocess.PIPE,
                    stderr=subprocess.STDOUT,
                    shell=True)
-  #chpasswd.communicate(input='root:' + pwhash)
   chpasswd.stdin.write( bytes(('root:' + pwhash + '\n'), 'ascii') )
 
 
@@ -53,6 +52,7 @@ def setup_ssh(deploykey):
   pmkdir('/root/.ssh')
 
   keyfile = open(keypath, 'w')
+  os.chmod(keypath, 0o600)
   keyfile.write(deploykey)
   keyfile.write('\n')
   keyfile.close()
@@ -150,7 +150,9 @@ setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['
 
 # Launch initialize_instance
 
-logfile.write('Starting initialize_instance')
-#logfile.write(subprocess.getoutput([os.path.join(env_export['scripts_dir'], 'initialize_instance'))
+initialize_instance = os.path.join(env_export['scripts_dir'], 'initialize_instance')
+
+logfile.write('Starting %s\n' % initialize_instance)
+logfile.write(subprocess.getoutput(initialize_instance))
 
 logfile.close()
