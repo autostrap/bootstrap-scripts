@@ -74,7 +74,8 @@ def setup_git(scripts_repo, scripts_branch, scripts_dir):
   logfile.write('\n\n')
   logfile.write(subprocess.getoutput('aptitude -y install git'))
   logfile.write('\n\n')
-  logfile.write(subprocess.getoutput('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir) ))
+  if not os.path.isdir(scripts_dir):
+    logfile.write(subprocess.getoutput('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir) ))
   logfile.write('\n\n')
 
 
