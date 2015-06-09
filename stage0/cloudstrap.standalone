@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
 # 2015, j.grassler@syseleven.de
 
@@ -12,186 +12,145 @@
 #
 #  cloudstrap.standalone [ [ -m <key>=<value> ] ... ]
 
-mkdir -p /var/log/cloudstrap
-exec > /var/log/cloudstrap/stage0.log 2>&1
-set -x
+import argparse
+import os
 
-# Create a mockup of an Openstack style /config directory for storing metadata
-# passed on the command line.
+import json
 
-mkdir -p /config/openstack/latest
-cat > /config/openstack/latest/meta_data.json <<EOF 
-{
-  "meta": {
-EOF
-
-declare -a meta
-
-while [[ $1 ]]; do
-  case "$1" in 
-    -m)
-      shift
-      key=$(echo "$1" | awk '-F=' '{print $1}')
-      value=$(echo "$1" | sed 's/^[^=]*=//')
-      meta+=("    \"${key}\": \"${value}\",")
-      shift
-      ;;
-    *) 
-      args+=("$1"); shift
-      ;;
-  esac
-done
-
-# Remove trailing comma from last metadata entry, JSON is picky about this sort
-# of thing.
-
-meta[$((${#meta[*]} - 1))]=$(echo "${meta[$((${#meta[*]} - 1))]}" | sed 's/,$//')
-
-for (( i=0; i < ${#meta[*]}; i++ )); do
-  echo "${meta[$i]}" >> /config/openstack/latest/meta_data.json
-done
-
-cat >> /config/openstack/latest/meta_data.json <<EOF 
-$meta
-  },
-}
-EOF
-
-# Repository configuration
-
-: ${config_repo:=https://github.com/syseleven/project-config.git}
-export config_repo
-
-: ${config_branch:=master}
-export config_branch
-
-: ${scripts_repo:=https://github.com/syseleven/bootstrap-scripts.git}
-export scripts_repo
-
-: ${scripts_branch:=master}
-export scripts_branch
-
-: ${sys11_config_repo:=https://github.com/syseleven/sys11-config.git}
-export sys11_config_repo
-
-: ${sys11_config_branch:=master}
-export sys11_config_branch
-
-: ${repodeploy_repo:=https://github.com/syseleven/puppet-repodeploy.git}
-export repodeploy_repo
-
-: ${repodeploy_branch:=master}
-export repodeploy_branch
-
-
-# Variables exclusively used by stage0 bootstrapping
-
-: ${override_yaml:=''}
-: ${deploy_key:=''}
-: ${root_password:=''}
-deploykeypath=/root/.ssh/id_deploy
-
-
-# Static repository paths
-
-export scripts_dir=/opt/scripts/sys11
-export config_dir=/opt/config/project
-export sys11_config_dir=/opt/config/sys11
-
+import subprocess
 
 # Set root password if a password hash was supplied.
 
-if [ -n "$root_password" ]; then
-  echo 'root:$root_password' | chpasswd -e
-  echo 'ubuntu:$root_password' | chpasswd -e
-fi
+
+# mkdir -p emulation for python versions < 3.4 (lacks pathlib)
+
+def pmkdir(path):
+  components = path.split('/')[1:-1]
+  partial = '/'
+  for i in components:
+    partial = os.path.join(partial, i)
+    if not os.path.isdir(partial):
+      os.mkdir(partial)
 
 
-# Write out override.yaml if supplied.
 
-if [ -n "$override_yaml" ]; then
-  cat > /opt/override.yaml <<EOF
-$override_yaml
-EOF
-fi
-
-
-# Configures a deploy key if one is supplied.
-
-setup_deploy_key() 
-  {
-  if [ -z "$deploy_key" ]; then
-    return 0
-  fi
-
-  mkdir -p /root/.ssh/
-  touch $deploykeypath
-  chmod 600 $deploykeypath
-  cat > $deploykeypath <<EOF
-$deploy_key
-EOF
-
-    echo "${deploykeypath}" | ssh-keygen -y > "${deploykeypath}.pub"
-
-  cat > /root/.ssh/config <<EOF
-IdentityFile $deploykeypath
-StrictHostKeyChecking=no
-EOF
-}
+def setup_rootpw(pwhash):
+  chpasswd = subprocess.Popen(['chpasswd', '-e'],
+                   stdin=subprocess.PIPE,
+                   stdout=subprocess.PIPE,
+                   stderr=subprocess.STDOUT,
+                   shell=True)
+  #chpasswd.communicate(input='root:' + pwhash)
+  chpasswd.stdin.write( bytes(('root:' + pwhash + '\n'), 'ascii') )
 
 
-# Sets up git and clones bootstrap-scripts repository.
 
-setup_git()
-  {
-  aptitude update &&
-  aptitude install -y git &&
-  git clone $scripts_repo $scripts_dir &&
-  (cd $scripts_dir ; git checkout $scripts_branch)
+# Configure a deploy key if one is available
+
+def setup_ssh(deploykey):
+  keypath = '/root/.ssh/id_deploy'
+
+  pmkdir('/root/.ssh')
+
+  keyfile = open(keypath, 'w')
+  keyfile.write(deploykey)
+  keyfile.write('\n')
+  keyfile.close()
+
+  ssh_config = open('/root/.ssh/config', 'w')
+  ssh_config.write('\n'.join(
+    [
+    'IdentityFile %s' % (keypath),
+    'StrictHostKeyChecking=no',
+    '',
+    ]))
+  ssh_config.close()
+
+
+# Setup git and clone bootstrap-scripts repository.
+
+def setup_git(scripts_repo, scripts_branch, scripts_dir):
+  logfile.write(subprocess.getoutput('aptitude -y update'))
+  logfile.write('\n\n')
+  logfile.write(subprocess.getoutput('aptitude -y install git'))
+  logfile.write('\n\n')
+  logfile.write(subprocess.getoutput('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir) ))
+  logfile.write('\n\n')
+
+
+
+parser = argparse.ArgumentParser(description='Standalone wrapper for cloudstrap deployment without EC2 metadata.')
+
+# Meta data directory
+metadir = '/config/openstack/latest/'
+pmkdir(metadir)
+
+# Log file for this script
+logdir = '/var/log/cloudstrap/'
+pmkdir(logdir)
+
+logfile = open(os.path.join(logdir, 'stage0.log'), 'w')
+
+# Simulated meta_data.json (filled from -m options) for environments without EC2 metadata
+metafile = open(os.path.join(metadir, 'meta_data.json'), 'w')
+
+parser.add_argument('-m', 
+                      help='Metadata parameter (`=` delimited key-value pair).',
+                      action='append',
+                      )
+
+args = parser.parse_args()
+
+metadata = {}
+env_export = os.environ
+
+env_default = {
+  'config_repo': 'https://github.com/syseleven/project-config.git',
+  'config_branch': 'master',
+  'scripts_repo': 'https://github.com/syseleven/bootstrap-scripts.git',
+  'scripts_branch': 'master',
+  'sys11_config_repo': 'https://github.com/syseleven/sys11-config.git',
+  'sys11_config_branch': 'master',
+  'repodeploy_repo': 'https://github.com/syseleven/puppet-repodeploy.git',
+  'repodeploy_branch': 'master',
+  'scripts_dir': '/opt/scripts/sys11',
+  'config_dir': '/opt/config/project',
+  'sys11_config_dir': '/opt/config/sys11',
   }
 
+# Populate environment with entries from defaults where they are missing.
+
+for env_entry in env_default.keys():
+  if not env_entry in os.environ:
+    os.environ[env_entry] = env_default[env_entry]
+
+# Export environment variables relevant for initialize_instance.
+
+for env_entry in env_default.keys():
+  env_export[env_entry] = os.environ[env_entry]
 
 
-# Checks for network connectivity and blocks until network is up.
+# Write out meta_data.json based on -m options.
 
-check_net()
-  {
-  url=http://www.github.com
-  start=$(date '+%s')
-  duration=0
-  max_time=900          # Maximum overall time for connection attempts.
-  remainder=$max_time   # Time remaining on the connection attempt clock.
+if args.m:
+  for metaitem in args.m:
+    key, value = metaitem.split('=', 1)
+    metadata[key] = value
 
-  # Ensures retrying for 15 minutes even in case of connect timeouts
-  # (`curl --connect-timeout 900` will give up after 128s without retrying).
-  while [ $duration -lt $max_time ]
-    do
-      # Ensures exponential backoff for all errors other than connect timeouts.
-      out=$(curl -I --max-time $remainder --retry 9 "$url")
-      status=$?
+json = json.dump( { 'meta': metadata }, metafile)
+metafile.close()
 
-      now=$(date '+%s')
-      duration=$(($now - $start))
-      remainder=$(($max_time - duration))
+if 'root_password' in os.environ:
+  setup_rootpw(os.environ['root_password'])
 
-      if [ $status -eq 0 ]; then
-        break
-      fi
-    done
+if 'deploy_key' in os.environ:
+  setup_ssh(os.environ['deploy_key'])
 
-  if [ $status -eq 0 ]; then
-    echo "Successfully requested $url after ${duration}s. Network connectivity check successful."
-    return 0
-  fi
+setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['scripts_dir'])
 
-  echo "Could not reach $url after ${duration}s. Network connectivity check failed."
-  return 1
-  }
+# Launch initialize_instance
 
-check_net &&
-setup_deploy_key &&
-setup_git &&
+logfile.write('Starting initialize_instance')
+#logfile.write(subprocess.getoutput([os.path.join(env_export['scripts_dir'], 'initialize_instance'))
 
-$scripts_dir/initialize_instance
-
-env  # log environment
+logfile.close()
