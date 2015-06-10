@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+
+# 2015, j.grassler@syseleven.de
+
+# This is a stage0 bootstrap script for Cloudstrap deployment in environments
+# without EC2 metadata/user data. It will take the parameters normally passed
+# as properties of sys11::cloudstrap from its environment and will simulate EC2
+# metadata by creating /config/openstack/latest/meta_data.json with a 'meta'
+# hash populated from its '-m' options.
+#
+# usage:
+#
+#  cloudstrap.standalone [ [ -m <key>=<value> ] ... ]
+
+import argparse
+import os
+
+import json
+
+import subprocess
+
+# Set root password if a password hash was supplied.
+
+
+# mkdir -p emulation for python versions < 3.4 (lacks pathlib)
+
+def pmkdir(path):
+  components = path.split('/')[1:-1]
+  partial = '/'
+  for i in components:
+    partial = os.path.join(partial, i)
+    if not os.path.isdir(partial):
+      os.mkdir(partial)
+
+
+
+def setup_rootpw(pwhash):
+  chpasswd = subprocess.Popen(['chpasswd', '-e'],
+                   stdin=subprocess.PIPE,
+                   stdout=subprocess.PIPE,
+                   stderr=subprocess.STDOUT,
+                   shell=True)
+  chpasswd.stdin.write( bytes(('root:' + pwhash + '\n'), 'ascii') )
+
+
+
+# Configure a deploy key if one is available
+
+def setup_ssh(deploykey):
+  keypath = '/root/.ssh/id_deploy'
+
+  pmkdir('/root/.ssh')
+
+  keyfile = open(keypath, 'w')
+  os.chmod(keypath, 0o600)
+  keyfile.write(deploykey)
+  keyfile.write('\n')
+  keyfile.close()
+
+  ssh_config = open('/root/.ssh/config', 'w')
+  ssh_config.write('\n'.join(
+    [
+    'IdentityFile %s' % (keypath),
+    'StrictHostKeyChecking=no',
+    '',
+    ]))
+  ssh_config.close()
+
+
+# Setup git and clone bootstrap-scripts repository.
+
+def setup_git(scripts_repo, scripts_branch, scripts_dir):
+  logfile.write(subprocess.getoutput('aptitude -y update'))
+  logfile.write('\n\n')
+  logfile.write(subprocess.getoutput('aptitude -y install git'))
+  logfile.write('\n\n')
+  if not os.path.isdir(scripts_dir):
+    logfile.write(subprocess.getoutput('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir) ))
+  logfile.write('\n\n')
+
+
+
+parser = argparse.ArgumentParser(description='Standalone wrapper for cloudstrap deployment without EC2 metadata.')
+
+# Meta data directory
+metadir = '/config/openstack/latest/'
+pmkdir(metadir)
+
+# Log file for this script
+logdir = '/var/log/cloudstrap/'
+pmkdir(logdir)
+
+logfile = open(os.path.join(logdir, 'stage0.log'), 'w')
+
+# Simulated meta_data.json (filled from -m options) for environments without EC2 metadata
+metafile = open(os.path.join(metadir, 'meta_data.json'), 'w')
+
+parser.add_argument('-m', 
+                      help='Metadata parameter (`=` delimited key-value pair).',
+                      action='append',
+                      )
+
+args = parser.parse_args()
+
+metadata = {}
+env_export = os.environ
+
+env_default = {
+  'config_repo': 'https://github.com/syseleven/project-config.git',
+  'config_branch': 'master',
+  'scripts_repo': 'https://github.com/syseleven/bootstrap-scripts.git',
+  'scripts_branch': 'master',
+  'sys11_config_repo': 'https://github.com/syseleven/sys11-config.git',
+  'sys11_config_branch': 'master',
+  'repodeploy_repo': 'https://github.com/syseleven/puppet-repodeploy.git',
+  'repodeploy_branch': 'master',
+  'scripts_dir': '/opt/scripts/sys11',
+  'config_dir': '/opt/config/project',
+  'sys11_config_dir': '/opt/config/sys11',
+  }
+
+# Populate environment with entries from defaults where they are missing.
+
+for env_entry in env_default.keys():
+  if not env_entry in os.environ:
+    os.environ[env_entry] = env_default[env_entry]
+
+# Export environment variables relevant for initialize_instance.
+
+for env_entry in env_default.keys():
+  env_export[env_entry] = os.environ[env_entry]
+
+
+# Write out meta_data.json based on -m options.
+
+if args.m:
+  for metaitem in args.m:
+    key, value = metaitem.split('=', 1)
+    metadata[key] = value
+
+json = json.dump( { 'meta': metadata }, metafile)
+metafile.close()
+
+if 'root_password' in os.environ:
+  setup_rootpw(os.environ['root_password'])
+
+if 'deploy_key' in os.environ:
+  setup_ssh(os.environ['deploy_key'])
+
+setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['scripts_dir'])
+
+# Launch initialize_instance
+
+initialize_instance = os.path.join(env_export['scripts_dir'], 'initialize_instance')
+
+logfile.write('Starting %s\n' % initialize_instance)
+logfile.write(subprocess.getoutput(initialize_instance))
+
+logfile.close()
