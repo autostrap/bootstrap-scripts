@@ -110,7 +110,7 @@ puppet_master
 type: string (FQDN)
 
 This parameter contains the fully qualified domain name of the puppet master,
-puppet agents are retrieve their configuration from. This should be set on both
+puppet agents retrieve their configuration from. This should be set on both
 puppet agents and the puppet master, since the puppet master itself is usually
 managed from the same source.
 
