@@ -53,7 +53,7 @@ Environment
   environment variables and will override them from its environment if they are
   set.
 
-metadata parameters
+Metadata parameters
 ===================
 
 Bootstrapping behaviour is governed by the metadata parameters listed below.
@@ -66,6 +66,23 @@ bootstrapping script being used:
 * By using the -m option to the `stage0/bootstrap.simple` script (may be given multiple
   times and takes a `=` delimited key-value pair as its sole argument, e.g. `-P
   project_classes=true`).
+
+Usage example
+=============
+
+This usage example assumes your private git repositories' (if you have any,
+that is) deploy key to be in /root/deploy. It deploys configuration with
+various sane defaults, plus a sensu server, all managed using masterless
+Puppet.
+
+```
+git clone https://github.com/syseleven/bootstrap-scripts.git /opt/bootstrap-scripts
+unset SSH_AUTH_SOCK
+deploy_key="$(cat /root/deploy)" /opt/bootstrap-scripts/stage0/cloudstrap.standalone \
+   -m sys11_topics="base firewall ssh sensu-server puppet-masterless" \
+   -m project_classes=true
+```
+
 
 project_classes
 ---------------
