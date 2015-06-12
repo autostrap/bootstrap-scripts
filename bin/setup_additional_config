@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+
+import os
+import subprocess
+import sys
+
+def main():
+  target_dir = '/tmp/additional'
+
+  if not os.environ.get('additional_config'):
+    exit(0)
+
+  additional_configs = os.environ.get('additional_config').split(' ')
+
+  if len(sys.argv) >= 2:
+    command = sys.argv[1]
+  else:
+    usage()
+    exit(1)
+
+  if command == 'clone':
+    clone(additional_configs, target_dir)
+  if command == 'gen_hiera':
+    gen_hiera(additional_configs)
+  else:
+    exit(1)
+
+
+def usage():
+  print('usage: %s clone | gen_hiera' % sys.argv[0])
+
+
+def clone(additional_configs, target_dir):
+  for config in additional_configs:
+    url_raw, path = config.split('::')
+    url, revision = url_raw.split('#')
+    reponame, ext = os.path.splitext(os.path.basename(url))
+    destdir = os.path.join(target_dir, reponame)
+
+    if revision:
+      clone_command = 'git clone --branch %s %s %s' % (revision, url, destdir)
+    else:
+      clone_command = 'git clone %s %s' % (revision, url, destdir)
+
+    print(subprocess.getoutput(clone_command))
+
+main()
