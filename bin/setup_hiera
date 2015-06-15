@@ -67,6 +67,9 @@ if [ -d "$config_dir" ]; then
 
 fi
 
+# Add entries for repositories from additional_config
+
+setup_additional_config gen_hiera >> /etc/puppet/hiera.yaml
 
 # Deploy bootstrap topic configurations
 
