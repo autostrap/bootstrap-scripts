@@ -12,7 +12,3 @@ fi
 
 git clone --branch "${sys11_config_branch}" "${sys11_config_repo}" "${sys11_config_dir}"
 git clone --branch "${repodeploy_branch}" "${repodeploy_repo}" /opt/puppet-modules/repodeploy
-
-# Clone repositories from $additional_configs
-
-setup_additional_config clone
