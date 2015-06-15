@@ -5,43 +5,98 @@ import subprocess
 import sys
 
 def main():
-  target_dir = '/tmp/additional'
+    target_dir = '/opt/config/additional'
 
-  if not os.environ.get('additional_config'):
-    exit(0)
+    if not os.environ.get('additional_config'):
+        exit(0)
 
-  additional_configs = os.environ.get('additional_config').split(' ')
+    additional_configs = os.environ.get('additional_config').split(' ')
 
-  if len(sys.argv) >= 2:
-    command = sys.argv[1]
-  else:
-    usage()
-    exit(1)
+    if len(sys.argv) >= 2:
+        command = sys.argv[1]
+    else:
+        usage()
+        exit(1)
 
-  if command == 'clone':
-    clone(additional_configs, target_dir)
-  if command == 'gen_hiera':
-    gen_hiera(additional_configs)
-  else:
-    exit(1)
+    repos = parse_additional_configs(additional_configs, target_dir)
+
+    if command == 'clone':
+        exit(clone(repos))
+    if command == 'gen_hiera':
+        gen_hiera(repos)
+        exit(0)
+    else:
+        usage()
+        exit(1)
 
 
 def usage():
-  print('usage: %s clone | gen_hiera' % sys.argv[0])
+    """ Prints usage information. """
+    print('usage: %s clone | gen_hiera' % sys.argv[0])
+
+def parse_additional_configs(additional_configs, target_dir):
+    """
+    Parses $additional_config environment variable.
+
+    $additional_config is a space separated string of repository definitions
+    with the individual tokens formatted as follows:
+
+    <repository url>[#<revision>]::[[<path>][:<path> ...]]
+
+    The paths at the end specify the files to be included in hiera.yaml and are
+    relative to the repository's root directory. You may omit the '.yaml'
+    extension (if it exists it will be stripped).
+
+    Example:
+
+    additional_config='git@gitlab.syseleven.de:cloudstrap/bootstrap-scripts.git#os-673::bar/:baz/a:baz/b git@gitlab.syseleven.de:cloudstrap/project--config.git::bar/:baz/a:baz/b'
+
+    """
+    repos = {}
+    for config in additional_configs:
+        url_raw, paths = config.split('::')
+        try:
+            url, revision = url_raw.split('#')
+        except ValueError: # Happens without optional '#<revision>' after URL.
+            url = url_raw
+            revision = None
+
+        reponame = os.path.splitext(os.path.basename(url))[0]
+        repos[reponame] = {}
+        repos[reponame]['destdir'] = os.path.join(target_dir, reponame)
+        repos[reponame]['include_paths'] = paths.split(':')
+        repos[reponame]['revision'] = revision
+        repos[reponame]['url'] = url
+    return repos
 
 
-def clone(additional_configs, target_dir):
-  for config in additional_configs:
-    url_raw, path = config.split('::')
-    url, revision = url_raw.split('#')
-    reponame, ext = os.path.splitext(os.path.basename(url))
-    destdir = os.path.join(target_dir, reponame)
+def clone(repos):
+    """ Clones additional configuration repositories. """
+    for repo in repos:
+        if repos[repo]['revision']:
+            clone_command = 'git clone --branch %s %s %s' % (
+                    repos[repo]['revision'],
+                    repos[repo]['url'],
+                    repos[repo]['destdir'])
+        else:
+            clone_command = 'git clone %s %s' % (repos[repo]['url'],
+                    repos[repo]['destdir'])
 
-    if revision:
-      clone_command = 'git clone --branch %s %s %s' % (revision, url, destdir)
-    else:
-      clone_command = 'git clone %s %s' % (revision, url, destdir)
+        print(subprocess.getoutput(clone_command))
+        print(subprocess.getoutput('ln -s %s %s' % (repos[repo]['destdir'], '/etc/puppet/hieradata')))
 
-    print(subprocess.getoutput(clone_command))
+def gen_hiera(repos):
+    """ Generates hiera.yaml entries for additional repositories. """
+    for repo in repos:
+        if not os.path.exists(repos[repo]['destdir']):
+                print ('%s: No such file or directory. Did you run %s clone already?' % (
+                    repos[repo]['destdir'],
+                    sys.argv[0]),
+                    file=sys.stderr)
+                continue
+        else:
+            for path in repos[repo]['include_paths']:
+                print('  - "%s"' % os.path.join(repo, path))
+
 
 main()
