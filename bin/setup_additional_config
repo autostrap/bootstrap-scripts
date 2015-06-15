@@ -85,7 +85,7 @@ def clone(repos):
             clone_command = 'git clone %s %s' % (repos[repo]['url'],
                     repos[repo]['destdir'])
 
-        link_command = 'ln -s %s %s' % (repos[repo]['destdir'], '/etc/puppet/hieradata')
+        link_command = 'ln -s %s %s' % (repos[repo]['destdir'], os.path.join('/etc/puppet/hieradata', repo))
 
         for command in [clone_command, link_command]:
             status, output = subprocess.getstatusoutput(command)
