@@ -72,6 +72,8 @@ def parse_additional_configs(additional_configs, target_dir):
 
 def clone(repos):
     """ Clones additional configuration repositories. """
+    retval = 0
+
     for repo in repos:
         if repos[repo]['revision']:
             clone_command = 'git clone --branch %s %s %s' % (
@@ -82,8 +84,16 @@ def clone(repos):
             clone_command = 'git clone %s %s' % (repos[repo]['url'],
                     repos[repo]['destdir'])
 
-        print(subprocess.getoutput(clone_command))
-        print(subprocess.getoutput('ln -s %s %s' % (repos[repo]['destdir'], '/etc/puppet/hieradata')))
+        link_command = 'ln -s %s %s' % (repos[repo]['destdir'], '/etc/puppet/hieradata')
+
+        for command in [clone_command, link_command]:
+            status, output = subprocess.getstatusoutput(command)
+            if status == 0:
+                print(output)
+            else:
+                print('%s returned %d, output follows' % (command, status), file=sys.stderr)
+                print(output, file=sys.stderr)
+                retval = 1
 
 def gen_hiera(repos):
     """ Generates hiera.yaml entries for additional repositories. """
