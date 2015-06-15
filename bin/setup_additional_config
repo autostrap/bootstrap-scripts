@@ -106,7 +106,24 @@ def gen_hiera(repos):
                 continue
         else:
             for path in repos[repo]['include_paths']:
-                print('  - "%s"' % os.path.join(repo, path))
+                # Strip .yaml extension, for inclusion in hiera.yaml
+                path_stripped = os.path.splitext(path)[0]
+
+                # Ensure .yaml extension is present for sanity check
+                if path == path_stripped and not os.path.basename(path) == '':
+                  path += '.yaml'
+
+                path_absolute = os.path.join(
+                    repos[repo]['destdir'],
+                    path)
+
+                if not os.path.exists(path_absolute):
+                    print('WARN: %s: No such file or directory.' % path_absolute, file=sys.stderr)
+                else:
+                    if not os.path.isfile(path_absolute):
+                        print('WARN: %s: Not a regular file.' % path_absolute, file=sys.stderr)
+                
+                print('  - "%s"' % os.path.join(repo, path_stripped))
 
 
 main()
