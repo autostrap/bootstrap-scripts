@@ -38,8 +38,9 @@ def usage():
 
 def parse_additional_configs(additional_configs, target_dir):
     """
-    Specifies one or more additional repositories configuration repositories 
-    to clone as a space separated string, with the individual tokens 
+    Parses the additional_configs environment variable, which specifies one or
+    more additional repositories configuration repositories to clone as a space
+    separated string, with the individual tokens 
     formatted as follows:
 
     `<repository url>[#<revision>]::[[<path>][:<path> ...]]`
