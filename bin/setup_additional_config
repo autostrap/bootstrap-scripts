@@ -38,21 +38,19 @@ def usage():
 
 def parse_additional_configs(additional_configs, target_dir):
     """
-    Parses $additional_config environment variable.
+    Specifies one or more additional repositories configuration repositories 
+    to clone as a space separated string, with the individual tokens 
+    formatted as follows:
 
-    $additional_config is a space separated string of repository definitions
-    with the individual tokens formatted as follows:
+    `<repository url>[#<revision>]::[[<path>][:<path> ...]]`
 
-    <repository url>[#<revision>]::[[<path>][:<path> ...]]
+    Specifying a revision is optional.
 
     The paths at the end specify the files to be included in hiera.yaml and are
     relative to the repository's root directory. You may omit the '.yaml'
-    extension (if it exists it will be stripped).
+    extension (if it exists it will be stripped for inclusion in hiera.yaml).
 
-    Example:
-
-    additional_config='git@gitlab.syseleven.de:cloudstrap/bootstrap-scripts.git#os-673::bar/:baz/a:baz/b git@gitlab.syseleven.de:cloudstrap/project--config.git::bar/:baz/a:baz/b'
-
+    Example: `additional_config='https://github.com/syseleven/sys11-additional-config.git::ssh/keys_sys11.yaml git@gitlab.example.com:my-team/my-config.git::config/ssh/my_keys:bar/:config/apache'`
     """
     repos = {}
     for config in additional_configs:
