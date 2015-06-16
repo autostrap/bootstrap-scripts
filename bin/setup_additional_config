@@ -5,6 +5,7 @@
 import os
 import subprocess
 import sys
+import glob
 
 def main():
     target_dir = '/opt/config/additional'
@@ -50,6 +51,7 @@ def parse_additional_configs(additional_configs, target_dir):
     The paths at the end specify the files to be included in hiera.yaml and are
     relative to the repository's root directory. You may omit the '.yaml'
     extension (if it exists it will be stripped for inclusion in hiera.yaml).
+    Shell wildcards in a path are expanded.
 
     Example: additional_config='https://github.com/syseleven/sys11-additional-config.git::ssh/keys_sys11.yaml git@gitlab.example.com:my-team/my-config.git#devel::config  /ssh/keys:apache/vhosts'
     """
@@ -107,24 +109,25 @@ def gen_hiera(repos):
                 continue
         else:
             for path in repos[repo]['include_paths']:
-                # Strip .yaml extension, for inclusion in hiera.yaml
-                path_stripped = os.path.splitext(path)[0]
 
-                # Ensure .yaml extension is present for sanity check
-                if path == path_stripped and not os.path.basename(path) == '':
-                  path += '.yaml'
+                # Expand shell metacharacters in each path and work with the result.
+                for globbed in glob.glob(os.path.join(repos[repo]['destdir'], path)):
 
-                path_absolute = os.path.join(
-                    repos[repo]['destdir'],
-                    path)
+                    # Prepare hiera.yaml entry: obtain relative path and strip extension.
+                    relpath = os.path.relpath(globbed, start=repos[repo]['destdir'])
+                    relpath_stripped = os.path.splitext(relpath)[0]
 
-                if not os.path.exists(path_absolute):
-                    print('WARN: %s: No such file or directory.' % path_absolute, file=sys.stderr)
-                else:
-                    if not os.path.isfile(path_absolute):
-                        print('WARN: %s: Not a regular file.' % path_absolute, file=sys.stderr)
-                
-                print('  - "%s"' % os.path.join(repo, path_stripped))
+                    # Ensure .yaml extension is present for sanity check.
+                    if relpath == relpath_stripped and not os.path.basename(relpath) == '':
+                      globbed += '.yaml'
+
+                    if not os.path.exists(globbed):
+                        print('WARN: %s: No such file or directory.' % globbed, file=sys.stderr)
+                    else:
+                        if not os.path.isfile(globbed):
+                            print('WARN: %s: Not a regular file.' % globbed, file=sys.stderr)
+                    
+                    print('  - "%s"' % os.path.join(repo, relpath_stripped))
 
 if __name__ == '__main__':
   main()
