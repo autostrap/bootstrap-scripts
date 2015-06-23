@@ -52,6 +52,11 @@ export config_dir
 : ${sys11_config_dir:=/opt/config/sys11}
 export sys11_config_dir
 
+# Additional configuration repositories:
+
+: ${additional_config:=''}
+export additional_config
+
 
 export bootstrap_stage=initialize_instance
 

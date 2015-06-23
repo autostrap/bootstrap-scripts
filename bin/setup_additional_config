@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+
+# 2015, j.grassler@syseleven.de
+
+import os
+import subprocess
+import sys
+import glob
+
+def main():
+    target_dir = '/opt/config/additional'
+
+    if not os.environ.get('additional_config'):
+        exit(0)
+
+    additional_configs = os.environ.get('additional_config').split(' ')
+
+    if len(sys.argv) >= 2:
+        command = sys.argv[1]
+    else:
+        usage()
+        exit(1)
+
+    repos = parse_additional_configs(additional_configs, target_dir)
+
+    if command == 'clone':
+        exit(clone(repos))
+    if command == 'gen_hiera':
+        gen_hiera(repos)
+        exit(0)
+    else:
+        usage()
+        exit(1)
+
+
+def usage():
+    """ Prints usage information. """
+    print('usage: %s clone | gen_hiera' % sys.argv[0])
+
+def parse_additional_configs(additional_configs, target_dir):
+    """
+    Parses the additional_config environment variable, which specifies one or
+    more additional repositories configuration repositories to clone as a space
+    separated string, with the individual tokens 
+    formatted as follows:
+
+    `<repository url>[#<revision>]::[[<path>][:<path> ...]]`
+
+    Specifying a revision is optional.
+
+    The paths at the end specify the files to be included in hiera.yaml and are
+    relative to the repository's root directory. You may omit the '.yaml'
+    extension (if it exists it will be stripped for inclusion in hiera.yaml).
+    Shell wildcards in a path are expanded.
+
+    Example: additional_config='https://github.com/syseleven/sys11-additional-config.git::ssh/keys_sys11.yaml git@gitlab.example.com:my-team/my-config.git#devel::config  /ssh/keys:apache/vhosts'
+    """
+    repos = {}
+    for config in additional_configs:
+        url_raw, paths = config.split('::')
+        try:
+            url, revision = url_raw.split('#')
+        except ValueError: # Happens without optional '#<revision>' after URL.
+            url = url_raw
+            revision = None
+
+        reponame = os.path.splitext(os.path.basename(url))[0]
+        repos[reponame] = {}
+        repos[reponame]['destdir'] = os.path.join(target_dir, reponame)
+        repos[reponame]['include_paths'] = paths.split(':')
+        repos[reponame]['revision'] = revision
+        repos[reponame]['url'] = url
+    return repos
+
+
+def clone(repos):
+    """ Clones additional configuration repositories. """
+    retval = 0
+
+    for repo in repos:
+        if repos[repo]['revision']:
+            clone_command = 'git clone --branch %s %s %s' % (
+                    repos[repo]['revision'],
+                    repos[repo]['url'],
+                    repos[repo]['destdir'])
+        else:
+            clone_command = 'git clone %s %s' % (repos[repo]['url'],
+                    repos[repo]['destdir'])
+
+        link_command = 'ln -s %s %s' % (repos[repo]['destdir'], os.path.join('/etc/puppet/hieradata', repo))
+
+        if os.path.exists(repos[repo]['destdir']):
+            print('WARN: %s exists, skipping repository %s.' % (repos[repo]['destdir'], repo))
+            continue
+
+        for command in [clone_command, link_command]:
+            status, output = subprocess.getstatusoutput(command)
+            if status == 0:
+                print(output)
+            else:
+                print('%s returned %d, output follows' % (command, status), file=sys.stderr)
+                print(output, file=sys.stderr)
+                retval = 1
+
+def gen_hiera(repos):
+    """ Generates hiera.yaml entries for additional repositories. """
+    for repo in repos:
+        if not os.path.exists(repos[repo]['destdir']):
+                print ('%s: No such file or directory. Did you run %s clone already?' % (
+                    repos[repo]['destdir'],
+                    sys.argv[0]),
+                    file=sys.stderr)
+                continue
+        else:
+            for path in repos[repo]['include_paths']:
+
+                # Expand shell metacharacters in each path and work with the result.
+                for globbed in glob.glob(os.path.join(repos[repo]['destdir'], path)):
+
+                    # Prepare hiera.yaml entry: obtain relative path and strip extension.
+                    relpath = os.path.relpath(globbed, start=repos[repo]['destdir'])
+                    relpath_stripped = os.path.splitext(relpath)[0]
+
+                    # Ensure .yaml extension is present for sanity check.
+                    if relpath == relpath_stripped and not os.path.basename(relpath) == '':
+                      globbed += '.yaml'
+
+                    if not os.path.exists(globbed):
+                        print('WARN: %s: No such file or directory.' % globbed, file=sys.stderr)
+                    else:
+                        if not os.path.isfile(globbed):
+                            print('WARN: %s: Not a regular file.' % globbed, file=sys.stderr)
+                    
+                    print('  - "%s"' % os.path.join(repo, relpath_stripped))
+
+if __name__ == '__main__':
+  main()

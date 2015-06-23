@@ -10,7 +10,7 @@ if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to pa
   sys11_topics="base firewall"
 fi
 
-mkdir /etc/puppet/hieradata
+mkdir -p /etc/puppet/hieradata
 
 cat > /etc/puppet/hiera.yaml <<EOF
 ---
@@ -67,6 +67,10 @@ if [ -d "$config_dir" ]; then
 
 fi
 
+# Add entries for repositories from additional_config
+
+setup_additional_config clone
+setup_additional_config gen_hiera >> /etc/puppet/hiera.yaml
 
 # Deploy bootstrap topic configurations
 
