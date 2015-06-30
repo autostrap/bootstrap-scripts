@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 set -x
+shopt -s extglob
 
 # 2015, j.grassler@syseleven.de
 
@@ -8,5 +9,5 @@ set -x
 
 mkdir ${stage_dir}
 
-ln -s ${bootstrap_dir}/* ${stage_dir}
-ln -s ${additional_dir}/* ${stage_dir}
+ln -s ${bootstrap_dir}/!(*.md) ${stage_dir}
+ln -s ${additional_dir}/!(*.md) ${stage_dir}
