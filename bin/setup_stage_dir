@@ -4,5 +4,7 @@
 
 # Symlinks all bootstrapping scripts to bootstrap stage directory.
 
+mkdir ${stage_dir}
+
 ln -s ${bootstrap_dir}/* ${stage_dir}
 ln -s ${additional_dir}/* ${stage_dir}
