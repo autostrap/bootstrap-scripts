@@ -67,9 +67,9 @@ export bootstrap_stage=initialize_instance
 
 name=$(hostname -s)
 
-setup_stage_dir
-
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scripts_dir}/bin
+
+setup_stage_dir
 
 for i in ${stage_dir}/*
 do
