@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -x
+
 # 2015, j.grassler@syseleven.de
 
 # Symlinks all bootstrapping scripts to bootstrap stage directory.

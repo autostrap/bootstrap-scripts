@@ -69,6 +69,7 @@ name=$(hostname -s)
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scripts_dir}/bin
 
+setup_repos
 setup_stage_dir
 
 for i in ${stage_dir}/*
