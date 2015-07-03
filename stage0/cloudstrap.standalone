@@ -67,6 +67,18 @@ def setup_ssh(deploykey):
   ssh_config.close()
 
 
+# Write override_yaml if it was supplied
+
+def setup_override_yaml(content):
+  override_path = '/opt/override.yaml'
+
+  override_file = open(override_path, 'w')
+  os.chmod(override_path, 0o600)
+  override_file.write(content)
+  override_file.write('\n')
+  override_file.close()
+
+
 # Setup git and clone bootstrap-scripts repository.
 
 def setup_git(scripts_repo, scripts_branch, scripts_dir):
@@ -147,6 +159,9 @@ if 'root_password' in os.environ:
 
 if 'deploy_key' in os.environ:
   setup_ssh(os.environ['deploy_key'])
+
+if 'override_yaml' in os.environ:
+  setup_override_yaml(os.environ['override_yaml'])
 
 setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['scripts_dir'])
 
