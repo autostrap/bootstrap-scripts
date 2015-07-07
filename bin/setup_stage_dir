@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -x
+shopt -s extglob
+
+# 2015, j.grassler@syseleven.de
+
+# Symlinks all bootstrapping scripts to bootstrap stage directory.
+
+mkdir ${stage_dir}
+
+ln -s ${bootstrap_dir}/!(*.md) ${stage_dir}
+ln -s ${additional_dir}/!(*.md) ${stage_dir}

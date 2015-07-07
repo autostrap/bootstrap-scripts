@@ -106,7 +106,8 @@ metadata = {}
 env_export = os.environ
 
 env_default = {
-  'additional_config': '',
+  'additional_dir': '/opt/config/project/bootstrap.d',
+  'bootstrap_dir': '/opt/scripts/sys11/bootstrap.d',
   'config_branch': 'master',
   'config_dir': '/opt/config/project',
   'config_repo': 'https://github.com/syseleven/project-config.git',
@@ -115,6 +116,7 @@ env_default = {
   'scripts_branch': 'master',
   'scripts_dir': '/opt/scripts/sys11',
   'scripts_repo': 'https://github.com/syseleven/bootstrap-scripts.git',
+  'stage_dir': '/opt/scripts/stages',
   'sys11_config_branch': 'master',
   'sys11_config_dir': '/opt/config/sys11',
   'sys11_config_repo': 'https://github.com/syseleven/sys11-config.git',

@@ -27,10 +27,30 @@ for easy use.
 initialize_instance
 -------------------
 
-This is the default first stage bootstrap script invoked by the Syseleven
-Openstack cloud's standard user-data script (Heat resource
-`sys11::cloudstrap::v4` and later). It logs its output to
+This is the first stage bootstrap script invoked by the Syseleven Openstack
+cloud's standard user-data script (Heat resource `sys11::cloudstrap::v4` and
+later) and stage0/cloudstrap.standalone. It logs its output to
 /var/log/initialize_instance.log.
+
+Its main task is to execute the bootstrapping stages found in both this
+repository's bootstrap.d/ subdirectory and (optionally) a project-config
+repository's bootstrap.d subdirectory.
+
+bootstrap.d
+---------
+
+This directory contains bootstrap stages to be executed by initialize_instance.
+Scripts are numbered to control the order they are executed in (think sysvinit
+styles rc.d/ directories).  You may place additional bootstrapping scripts in
+your project-config repository
+
+For numbering your own scripts there are two rules: 
+
+* Numbers must be written in three-digit format (e.g. '015' instead of '15')
+
+* Multiples of 20, including '000' (e.g. '000', '020', '040') are reserved for
+  Syseleven's use. Apart from that anything goes (just pick a number that will
+  insert your own script between the desired Syseleven scripts.
 
 stage0/
 -------
