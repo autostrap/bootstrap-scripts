@@ -51,11 +51,11 @@ export scripts_dir
 export config_dir
 : ${sys11_config_dir:=/opt/config/sys11}
 export sys11_config_dir
-: ${bootstrap_dir:=${scripts_dir}/scripts.d}   # Bootstrapping scripts supplied by Syseleven.
+: ${bootstrap_dir:=${scripts_dir}/bootstrap.d}  # Bootstrapping scripts supplied by Syseleven.
 export bootstrap_dir
-: ${additional_dir:=${config_dir}/scripts.d}  # Bootstrapping scripts supplied by project.
+: ${additional_dir:=${config_dir}/bootstrap.d}  # Bootstrapping scripts supplied by project.
 export additional_dir
-: ${stage_dir:=/opt/scripts/stages}            # All Bootstrapping script are symlinked to this directory and executed in order.
+: ${stage_dir:=/opt/scripts/stages}             # All Bootstrapping scripts are symlinked to this directory and executed in order.
 export stage_dir
 
 # Additional configuration repositories:

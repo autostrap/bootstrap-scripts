@@ -33,10 +33,10 @@ later) and stage0/cloudstrap.standalone. It logs its output to
 /var/log/initialize_instance.log.
 
 Its main task is to execute the bootstrapping stages found in both this
-repository's scripts.d/ subdirectory and (optionally) a project-config
-repository's scripts.d subdirectory.
+repository's bootstrap.d/ subdirectory and (optionally) a project-config
+repository's bootstrap.d subdirectory.
 
-scripts.d
+bootstrap.d
 ---------
 
 This directory contains bootstrap stages to be executed by initialize_instance.
