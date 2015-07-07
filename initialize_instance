@@ -57,6 +57,9 @@ export bootstrap_dir
 export additional_dir
 : ${stage_dir:=/opt/scripts/stages}             # All Bootstrapping scripts are symlinked to this directory and executed in order.
 export stage_dir
+: ${repos_bootstrap:=/etc/puppet/hieradata/repos_params.yaml} # puppet-repodeploy configuration for repositories from environment.
+export repos_bootstrap
+
 
 # Additional configuration repositories:
 
@@ -68,6 +71,12 @@ export bootstrap_stage=initialize_instance
 name=$(hostname -s)
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scripts_dir}/bin
+
+# We'll need this early on to store repodeploy configuration for repositories
+# specified through Heat paramaters.
+
+mkdir -p /etc/puppet/hieradata
+echo 'repodeploy::repos:' >> "$repos_bootstrap"
 
 setup_repos
 setup_stage_dir

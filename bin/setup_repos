@@ -8,7 +8,27 @@ set -x
 
 if [ -n "$config_repo" ]; then
   git clone --branch "${config_branch}" "${config_repo}" "${config_dir}"
+  echo "  '${config_dir}':" >> $repos_bootstrap
+  echo "    revision: $config_branch" >> $repos_bootstrap
+  echo "    source: $config_repo" >> $repos_bootstrap
+  echo '    provider: git' >> $repos_bootstrap
 fi
 
 git clone --branch "${sys11_config_branch}" "${sys11_config_repo}" "${sys11_config_dir}"
+echo "  '${sys11_config_dir}':" >> $repos_bootstrap
+echo "    revision: $sys11_config_branch" >> $repos_bootstrap
+echo "    source: $sys11_config_repo" >> $repos_bootstrap
+echo '    provider: git' >> $repos_bootstrap
+
+
 git clone --branch "${repodeploy_branch}" "${repodeploy_repo}" /opt/puppet-modules/repodeploy
+echo "  '/opt/puppet-modules/repodeploy':" >> $repos_bootstrap
+echo "    revision: $repodeploy_branch" >> $repos_bootstrap
+echo "    source: $repodeploy_repo" >> $repos_bootstrap
+echo '    provider: git' >> $repos_bootstrap
+
+# Just add a repodeploy::repos entry for bootstrap-scripts (already cloned in stage 0).
+echo "  '${scripts_dir}':" >> $repos_bootstrap
+echo "    revision: $scripts_branch" >> $repos_bootstrap
+echo "    source: $scripts_repo" >> $repos_bootstrap
+echo '    provider: git' >> $repos_bootstrap
