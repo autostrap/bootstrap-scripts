@@ -28,6 +28,9 @@ def main():
     if command == 'gen_hiera':
         gen_hiera(repos)
         exit(0)
+    if command == 'gen_repodeploy':
+        gen_repodeploy(repos)
+        exit(0)
     else:
         usage()
         exit(1)
@@ -35,7 +38,7 @@ def main():
 
 def usage():
     """ Prints usage information. """
-    print('usage: %s clone | gen_hiera' % sys.argv[0])
+    print('usage: %s clone | gen_hiera | gen_repodeploy' % sys.argv[0])
 
 def parse_additional_configs(additional_configs, target_dir):
     """
@@ -73,6 +76,15 @@ def parse_additional_configs(additional_configs, target_dir):
     return repos
 
 
+def gen_repodeploy(repos):
+    for repo in repos:
+        print("  '%s':" % repos[repo]['destdir'])
+        print('    source: %s' % repos[repo]['url'])
+        if repos[repo]['revision']:
+            print('    revision: %s' % repos[repo]['revision'])
+        print('    provider: git')
+
+
 def clone(repos):
     """ Clones additional configuration repositories. """
     retval = 0
@@ -90,7 +102,7 @@ def clone(repos):
         link_command = 'ln -s %s %s' % (repos[repo]['destdir'], os.path.join('/etc/puppet/hieradata', repo))
 
         if os.path.exists(repos[repo]['destdir']):
-            print('WARN: %s exists, skipping repository %s.' % (repos[repo]['destdir'], repo))
+            print('WARN: %s exists, skipping repository %s.' % (repos[repo]['destdir'], repo), file=sys.stderr)
             continue
 
         for command in [clone_command, link_command]:
