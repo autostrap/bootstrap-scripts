@@ -74,6 +74,12 @@ export repos_bootstrap
 : ${additional_config:=''}
 export additional_config
 
+# Extra Hiera hierarchy entries to append after override.yaml
+
+: ${extra_overrides:=''}
+export extra_overrides
+
+
 export bootstrap_stage=initialize_instance
 
 name=$(hostname -s)

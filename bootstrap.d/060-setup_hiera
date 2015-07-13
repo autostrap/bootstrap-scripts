@@ -25,7 +25,16 @@ cat > /etc/puppet/hiera.yaml <<EOF
   - "$(basename $repos_bootstrap | sed 's/\.yaml$//')"
 EOF
 
+# Add extra overrides specified through Heat.
 
+if [ -n "$extra_overrides" ]; then
+  for entry in $extra_overrides
+  do
+    echo "  - $entry" | sed 's/\.yaml$//' >> /etc/puppet/hiera.yaml
+  done
+fi
+
+echo "  - $(basename $repos_bootstrap | sed 's/\.yaml$//')" >> /etc/puppet/hiera.yaml
 
 
 
