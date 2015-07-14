@@ -27,6 +27,14 @@ fi
 exec > /var/log/initialize_instance.log 2>&1
 set -x
 
+# Deprecation warnings for obsolete Heat parameters:
+
+if [ -n "$additional_script" ]; then
+  set +x
+  echo "WARNING: You are using the deprecated additional_script parameter which is no longer effective. Place scripts in your project-config repository's bootstrap.d/ instead."
+  set -x
+fi
+
 # Repositories:
 
 : ${config_repo:=https://github.com/syseleven/project-config.git}
