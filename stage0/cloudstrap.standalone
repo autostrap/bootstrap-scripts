@@ -123,6 +123,7 @@ env_default = {
   'config_branch': 'master',
   'config_dir': '/opt/config/project',
   'config_repo': 'https://github.com/syseleven/project-config.git',
+  'DEBIAN_FRONTEND': 'noninteractive',
   'repodeploy_branch': 'master',
   'repodeploy_repo': 'https://github.com/syseleven/puppet-repodeploy.git',
   'scripts_branch': 'master',
