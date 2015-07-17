@@ -21,19 +21,6 @@ import subprocess
 
 # Set root password if a password hash was supplied.
 
-
-# mkdir -p emulation for python versions < 3.4 (lacks pathlib)
-
-def pmkdir(path):
-  components = path.split('/')[1:-1]
-  partial = '/'
-  for i in components:
-    partial = os.path.join(partial, i)
-    if not os.path.isdir(partial):
-      os.mkdir(partial)
-
-
-
 def setup_rootpw(pwhash):
   chpasswd = subprocess.Popen(['chpasswd', '-e'],
                    stdin=subprocess.PIPE,
@@ -49,7 +36,7 @@ def setup_rootpw(pwhash):
 def setup_ssh(deploykey):
   keypath = '/root/.ssh/id_deploy'
 
-  pmkdir('/root/.ssh')
+  os.makedirs('/root/.ssh')
 
   keyfile = open(keypath, 'w')
   os.chmod(keypath, 0o600)
@@ -96,11 +83,11 @@ parser = argparse.ArgumentParser(description='Standalone wrapper for cloudstrap 
 
 # Meta data directory
 metadir = '/config/openstack/latest/'
-pmkdir(metadir)
+os.makedirs(metadir)
 
 # Log file for this script
 logdir = '/var/log/cloudstrap/'
-pmkdir(logdir)
+os.makedirs(logdir)
 
 logfile = open(os.path.join(logdir, 'stage0.log'), 'w')
 
