@@ -36,7 +36,7 @@ def setup_rootpw(pwhash):
 def setup_ssh(deploykey):
   keypath = '/root/.ssh/id_deploy'
 
-  os.makedirs('/root/.ssh')
+  os.makedirs('/root/.ssh', exist_ok=True)
 
   keyfile = open(keypath, 'w')
   os.chmod(keypath, 0o600)
@@ -83,11 +83,11 @@ parser = argparse.ArgumentParser(description='Standalone wrapper for cloudstrap 
 
 # Meta data directory
 metadir = '/config/openstack/latest/'
-os.makedirs(metadir)
+os.makedirs(metadir, exist_ok=True)
 
 # Log file for this script
 logdir = '/var/log/cloudstrap/'
-os.makedirs(logdir)
+os.makedirs(logdir, exist_ok=True)
 
 logfile = open(os.path.join(logdir, 'stage0.log'), 'w')
 
