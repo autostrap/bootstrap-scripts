@@ -17,7 +17,9 @@ rm /etc/localtime && ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 # Fix /etc/hosts
 addr_private=$(ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
 hostname=$(hostname -s)
-echo "${addr_private} ${hostname}.local ${hostname}.openstacklocal ${hostname}" >> /etc/hosts
+if ! egrep -q "^${addr_private}" /etc/hosts; then
+    echo "${addr_private} ${hostname}.local ${hostname}.openstacklocal ${hostname}" >> /etc/hosts;
+fi
 
 cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys
 chown root:root /root/.ssh/authorized_keys
