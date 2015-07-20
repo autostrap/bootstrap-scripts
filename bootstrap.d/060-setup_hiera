@@ -13,7 +13,7 @@ fi
 cat > /etc/puppet/hiera.yaml <<EOF
 ---
 :backends:
-  - yaml
+  - "yaml"
 :logger: puppet
 :yaml:
   :datadir: /etc/puppet/hieradata
@@ -21,8 +21,8 @@ cat > /etc/puppet/hiera.yaml <<EOF
     :datasource: data
 
 :hierarchy:
-  - override
-  - $(basename $repos_bootstrap | sed 's/\.yaml$//')
+  - "override"
+  - "$(basename $repos_bootstrap | sed 's/\.yaml$//')"
 EOF
 
 
