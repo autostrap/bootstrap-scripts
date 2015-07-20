@@ -96,6 +96,6 @@ done
 
 log_stage_finished
 
-env
+env -u deploy_key
 
 echo "finished $0"
