@@ -17,7 +17,7 @@ rm /etc/localtime && ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 # Fix /etc/hosts
 addr_private=$(ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
 hostname=$(hostname -s)
-if ! egrep -q "^${addr_private}" /etc/hosts; then
+if ! egrep -qw "^${addr_private}" /etc/hosts; then
     echo "${addr_private} ${hostname}.local ${hostname}.openstacklocal ${hostname}" >> /etc/hosts;
 fi
 
