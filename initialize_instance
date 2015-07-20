@@ -96,4 +96,6 @@ done
 
 log_stage_finished
 
+env
+
 echo "finished $0"
