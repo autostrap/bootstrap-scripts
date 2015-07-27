@@ -27,7 +27,11 @@ EOF
 
 
 
+# Generate hierarchy entries for additional_config
 
+setup_additional_config clone
+setup_additional_config gen_hiera >> /etc/puppet/hiera.yaml
+setup_additional_config gen_repodeploy >> "$repos_bootstrap"
 
 # Deploy topic configuration from project repository (if applicable).
 
@@ -42,7 +46,7 @@ if [ -d "$config_dir" ]; then
     echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
   fi
 
-  # Generate hierarchy entries for project specific configuration...
+  # Hierarchy entries from project-config...
 
   gen_hierarchy --dir ${config_dir} \
                 --all-topics \
@@ -50,8 +54,9 @@ if [ -d "$config_dir" ]; then
                 --prefix 'project-config' \
                 >> /etc/puppet/hiera.yaml
 
+    # ...and for sys11-config topics requested in project-config.
+
   if [ -n "$project_topics" ]; then # Only makes sense if project topics have been defined.
-    # ...and for sys11 default configuration.
 
     gen_hierarchy --dir ${sys11_config_dir} \
                   --include config.d --include repos.d \
@@ -65,12 +70,6 @@ if [ -d "$config_dir" ]; then
   ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
 
 fi
-
-# Add entries for repositories from additional_config
-
-setup_additional_config clone
-setup_additional_config gen_hiera >> /etc/puppet/hiera.yaml
-setup_additional_config gen_repodeploy >> "$repos_bootstrap"
 
 # Deploy bootstrap topic configurations
 
