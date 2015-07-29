@@ -2,10 +2,11 @@
 
 # 2015, j.grassler@syseleven.de
 
+import glob
 import os
+import re
 import subprocess
 import sys
-import glob
 
 def main():
     target_dir = '/opt/config/additional'
@@ -56,11 +57,11 @@ def parse_additional_configs(additional_configs, target_dir):
     extension (if it exists it will be stripped for inclusion in hiera.yaml).
     Shell wildcards in a path are expanded.
 
-    Example: additional_config='https://github.com/syseleven/sys11-additional-config.git::ssh/keys_sys11.yaml git@gitlab.example.com:my-team/my-config.git#devel::config  /ssh/keys:apache/vhosts'
+    Example: additional_config='https://github.com/syseleven/sys11-additional-config.git::ssh/keys_sys11.yaml git@gitlab.example.com:my-team/my-config.git#devel::config/ssh/keys:apache/vhosts'
     """
     repos = {}
     for config in additional_configs:
-        url_raw, paths = config.split('::')
+        url_raw, paths = config.split('::', maxsplit=1)
         try:
             url, revision = url_raw.split('#')
         except ValueError: # Happens without optional '#<revision>' after URL.
@@ -70,7 +71,7 @@ def parse_additional_configs(additional_configs, target_dir):
         reponame = os.path.splitext(os.path.basename(url))[0]
         repos[reponame] = {}
         repos[reponame]['destdir'] = os.path.join(target_dir, reponame)
-        repos[reponame]['include_paths'] = paths.split(':')
+        repos[reponame]['include_paths'] = re.split(r'(?<!:):(?!:)', paths)
         repos[reponame]['revision'] = revision
         repos[reponame]['url'] = url
     return repos
@@ -125,6 +126,13 @@ def gen_hiera(repos):
                 continue
         else:
             for path in repos[repo]['include_paths']:
+
+                # Include paths containing fact names verbatim since there's no
+                # way to validate them at this point.
+                if re.search(r'%\{::\w+\}', path) != None:
+                    path_stripped = os.path.splitext(path)[0]
+                    print('  - "%s"' % os.path.join(repo, path_stripped))
+                    continue
 
                 # Expand shell metacharacters in each path and work with the result.
                 for globbed in glob.glob(os.path.join(repos[repo]['destdir'], path)):
