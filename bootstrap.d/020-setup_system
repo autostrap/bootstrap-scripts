@@ -44,7 +44,7 @@ apt-get install -y \
                     puppet \
                     python-pip \
                     rsync \
-                    rubygems \
+                    ruby \
                     screen \
                     vim \
                     wget \
