@@ -69,9 +69,9 @@ def setup_override_yaml(content):
 # Setup git and clone bootstrap-scripts repository.
 
 def setup_git(scripts_repo, scripts_branch, scripts_dir):
-  logfile.write(subprocess.getoutput('aptitude -y update'))
+  logfile.write(subprocess.getoutput('apt-get -y update'))
   logfile.write('\n\n')
-  logfile.write(subprocess.getoutput('aptitude -y install git'))
+  logfile.write(subprocess.getoutput('apt-get -y install git'))
   logfile.write('\n\n')
   if not os.path.isdir(scripts_dir):
     logfile.write(subprocess.getoutput('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir) ))
