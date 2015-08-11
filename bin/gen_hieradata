@@ -12,12 +12,12 @@ fi
 cat > /etc/puppet/hiera.yaml <<EOF
 ---
 :backends:
-- "yaml"
+  - "yaml"
 :logger: puppet
 :yaml:
-:datadir: /etc/puppet/hieradata
-:puppet:
-:datasource: data
+  :datadir: /etc/puppet/hieradata
+  :puppet:
+    :datasource: data
 
 :hierarchy:
   - "override"
