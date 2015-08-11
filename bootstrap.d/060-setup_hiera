@@ -13,7 +13,13 @@ fi
 if [[ $hiera_yaml_location ]]; then
     # Disable most cloudstrap features and use static hiera.yaml
     if [[ -f $hiera_yaml_location ]]; then
+        # copy static hiera.yaml to proper place
         cp "$config_repo/$hiera_yaml_location" "/etc/puppet/hiera.yaml"
+
+        # Symlink configuration directories for project specific configurations.
+
+        ln -sf ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
+        ln -sf ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
     else
         echo "'$hiera_yaml_location' hiera.yaml was not found"
         exit 1

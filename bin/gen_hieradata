@@ -74,8 +74,8 @@ if [ -d "$config_dir" ]; then
 
   # Symlink configuration directories for project specific configurations.
 
-  ln -s ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
-  ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
+  ln -sf ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
+  ln -sf ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
 
 fi
 
