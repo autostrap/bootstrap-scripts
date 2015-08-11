@@ -20,8 +20,8 @@ cat > /etc/puppet/hiera.yaml <<EOF
 :datasource: data
 
 :hierarchy:
-- "override"
-- "$(basename $repos_bootstrap | sed 's/\.yaml$//')"
+  - "override"
+  - "$(basename $repos_bootstrap | sed 's/\.yaml$//')"
 EOF
 
 # Add extra overrides specified through Heat.
