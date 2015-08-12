@@ -35,6 +35,9 @@ if [ -n "$additional_script" ]; then
   set -x
 fi
 
+# Set DEBIAN_FRONTEND appropriately to avoid garbled dkpg output in log file.
+export DEBIAN_FRONTEND=noninteractive
+
 # Repositories:
 
 : ${config_repo:=https://github.com/syseleven/project-config.git}
