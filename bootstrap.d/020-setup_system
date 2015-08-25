@@ -14,13 +14,6 @@ fi
 # set tz
 rm /etc/localtime && ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
-# Fix /etc/hosts
-addr_private=$(ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
-hostname=$(hostname -s)
-if ! egrep -qw "^${addr_private}" /etc/hosts; then
-    echo "${addr_private} ${hostname}.local ${hostname}.openstacklocal ${hostname}" >> /etc/hosts;
-fi
-
 cp /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys
 chown root:root /root/.ssh/authorized_keys
 
@@ -47,5 +40,19 @@ aptitude install -y \
                     screen \
                     vim \
                     wget \
+
+# Fix /etc/hosts on openstack instances
+
+if facter -p ec2_hostname | grep 'novalocal'; then # .novalocal hostname suffixes only occur in openstack
+
+  addr_private=$(ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
+
+  if [ -n "$addr_private" ]; then
+    hostname=$(hostname -s)
+    if ! egrep -qw "^${addr_private}" /etc/hosts; then
+        echo "${addr_private} ${hostname}.local ${hostname}.openstacklocal ${hostname}" >> /etc/hosts;
+    fi
+  fi
+fi
 
 update-alternatives --set editor /usr/bin/vim.basic
