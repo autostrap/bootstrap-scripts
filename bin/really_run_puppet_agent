@@ -28,6 +28,10 @@ fi
 statefile=/var/cache/puppet.state
 log=/var/log/puppet/puppet_run.log
 
+
+# unset OS_ env variables to avoid conflict in puppet runs
+while IFS== read key value; do [[ $key == OS* ]] && unset $key; done < <(env)
+
 cleanup() {
   [[ -f $t ]] && rm "$t"
 }
