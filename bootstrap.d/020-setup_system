@@ -41,9 +41,9 @@ aptitude install -y \
                     vim \
                     wget \
 
-# Fix /etc/hosts on openstack instances
+# Add <hostname>.local entry to /etc/hosts on virtualized nodes (used for PVC and Openstack instances).
 
-if facter -p ec2_hostname | grep 'novalocal'; then # .novalocal hostname suffixes only occur in openstack
+if facter -p is_virtual | grep 'true' ; then
 
   addr_private=$(ip addr show dev eth0 | grep 'inet ' | awk '{print $2}' | cut -d/ -f 1)
 
