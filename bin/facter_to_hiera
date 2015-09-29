@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # 2015, s.andres@syseleven.de
 
+import glob
 import json
 import re
+import os
+import string
 from subprocess import check_output
 from optparse import OptionParser
 
@@ -16,6 +19,12 @@ def process_args():
                     "affect facts existing on this system. Non-existent facts "
                     "will not be added.")
 
+    parser.add_option("--modulepath", action="store", default='/opt/puppet-modules',
+                    help="This option takes a colon delimited list of paths "
+                    "that contain puppet modules, just like puppet's --modulepath "
+                    "option. The puppet modules under these paths will be searched"
+                    "for facts to use.")
+
     (options, args) = parser.parse_args()
 
     return options, args
@@ -23,7 +32,34 @@ def process_args():
 if __name__ == '__main__':
     options, args = process_args()
 
-    facts = json.loads(check_output('facter -j', shell=True))
+    # Default module path to search for facts (can be overriden through the
+    # environment variable $modulepath).
+
+    modulepath=[]
+    facterlib = []
+
+
+    # Use any $FACTERLIB entries provided by the user.
+
+    if os.environ.has_key('FACTERLIB'):
+        facterlib.extend(os.environ['FACTERLIB'].split(':'))
+    if options.modulepath:
+        modulepath = options.modulepath.split(':')
+
+
+    # Search Puppet modulepath for additional facts and extend $FACTERLIB
+    # accordingly.
+
+    for component in modulepath:
+        for module in glob.glob(os.path.join(component, '*')):
+            if os.path.isdir(module):
+                facterpath = os.path.join(module, 'lib/facter')
+                if os.path.isdir(facterpath):
+                    facterlib.append(facterpath)
+
+    os.environ['FACTERLIB'] = string.join(facterlib, ':')
+
+    facts = json.loads(check_output('facter -jp', shell=True))
     facts_new = {}
     for fact in facts:
         if options.key:
