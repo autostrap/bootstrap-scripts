@@ -85,7 +85,7 @@ bootstrapping script being used:
 
 * By using the -m option to the `stage0/bootstrap.simple` script (may be given multiple
   times and takes a `=` delimited key-value pair as its sole argument, e.g. `-P
-  project_classes=true`).
+  sys11_topics='base firewall puppet-masterless'`).
 
 Usage example
 =============
@@ -100,29 +100,9 @@ git clone https://github.com/syseleven/bootstrap-scripts.git /opt/bootstrap-scri
 unset SSH_AUTH_SOCK
 deploy_key="$(cat /root/deploy)" /opt/bootstrap-scripts/stage0/cloudstrap.standalone \
    -m sys11_topics="base firewall ssh sensu-server puppet-masterless" \
-   -m project_classes=true
+   -m nodetype="mysensuserver"
 ```
 
-
-project_classes
----------------
-
-*type: boolean*
-
-This parameter controls the addition of the following hierarchy entries in
-hiera.yaml:
-
-```
-  - "project-config/nodes.d/%{::fqdn}"
-  - "project-config/nodetypes.d/%{::nodetype}"
-```
-
-If project_classes is set to true, these entries are added to hiera.yaml, if it
-is set to false they are omitted. This option should be set to true on a puppet
-master or a node deployed through masterless puppet, and false on all puppet
-agents. This prevents the classes array provided by the puppet master from
-being used in puppet agents' early bootstrapping phase. If this parameter is
-not present it is assumed to be false.
 
 puppet_master
 -------------

@@ -3,7 +3,6 @@
 
 sys11_topics=$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)
 project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/sys11-topics | sort -u)
-project_classes=$(jq -r .meta.project_classes /config/openstack/latest/meta_data.json)
 
 if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
   sys11_topics="base firewall"
@@ -45,10 +44,11 @@ setup_additional_config gen_repodeploy >> "$repos_bootstrap"
 
 if [ -d "$config_dir" ]; then
 
-  # Only add these entries if explicitely asked for, since they cause the puppetmaster side
-  # configuration to be deployed during bootstrapping.
+  # Only add these entries on the puppet master or machines with a masterless
+  # puppet setup, since they cause the puppetmaster side configuration to be
+  # deployed during bootstrapping.
 
-  if [ "$project_classes" = 'true' ]; then
+  if echo "${sys11_topics}" | grep -w -e puppet-masterless -e puppet-master; then
     # Node and node type specific classes overrides from project configuration.
     echo "  - \"project-config/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
     echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
