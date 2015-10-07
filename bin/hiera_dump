@@ -25,6 +25,9 @@ def replace_facts(input, replaceby = {})
     input
 end
 
+# Handle SIGPIPE gracefully so as not to break tools like head(1).
+Signal.trap("SIGPIPE", "SYSTEM_DEFAULT")
+
 options = OpenStruct.new
 options.show_files = false
 
