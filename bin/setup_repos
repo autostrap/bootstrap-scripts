@@ -20,11 +20,16 @@ echo "    revision: $sys11_config_branch" >> $repos_bootstrap
 echo "    source: $sys11_config_repo" >> $repos_bootstrap
 echo '    provider: git' >> $repos_bootstrap
 
-
 git clone --branch "${repodeploy_branch}" "${repodeploy_repo}" /opt/puppet-modules/repodeploy
 echo "  '/opt/puppet-modules/repodeploy':" >> $repos_bootstrap
 echo "    revision: $repodeploy_branch" >> $repos_bootstrap
 echo "    source: $repodeploy_repo" >> $repos_bootstrap
+echo '    provider: git' >> $repos_bootstrap
+
+git clone --branch "${openstackfacts_branch}" "${openstackfacts_repo}" /opt/puppet-modules/openstackfacts
+echo "  '/opt/puppet-modules/openstackfacts':" >> $repos_bootstrap
+echo "    revision: $openstackfacts_branch" >> $repos_bootstrap
+echo "    source: $openstackfacts_repo" >> $repos_bootstrap
 echo '    provider: git' >> $repos_bootstrap
 
 # Just add a repodeploy::repos entry for bootstrap-scripts (already cloned in stage 0).
