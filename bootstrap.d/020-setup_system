@@ -22,10 +22,11 @@ chown root:root /root/.ssh/authorized_keys
 wget -c https://apt.puppetlabs.com/puppetlabs-release-${DISTRIB_CODENAME}.deb &&
 dpkg -i puppetlabs-release-${DISTRIB_CODENAME}.deb &&
 
-aptitude update
+apt-get update
 
 # avahi-daemon needed for local DNS
-aptitude install -y \
+apt-get install -y \
+                    aptitude \
                     avahi-daemon \
                     bash-completion \
                     build-essential \
@@ -36,7 +37,7 @@ aptitude install -y \
                     puppet \
                     python-pip \
                     rsync \
-                    rubygems \
+                    ruby \
                     screen \
                     vim \
                     wget \
