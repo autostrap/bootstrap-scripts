@@ -40,19 +40,19 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Repositories:
 
-: ${config_repo:=https://github.com/syseleven/project-config.git}
+: ${config_repo:=https://github.com/autostrap/project-config.git}
 export config_repo
 : ${config_branch:=master}
 export config_branch
-: ${sys11_config_repo:=https://github.com/syseleven/sys11-config.git}
-export sys11_config_repo
-: ${sys11_config_branch:=master}
-export sys11_config_branch
-: ${repodeploy_repo:=https://github.com/syseleven/puppet-repodeploy.git}
+: ${global_config_repo:=https://github.com/autostrap/global-config.git}
+export global_config_repo
+: ${global_config_branch:=master}
+export global_config_branch
+: ${repodeploy_repo:=https://github.com/autostrap/puppet-repodeploy.git}
 export repodeploy_repo
 : ${repodeploy_branch:=master}
 export repodeploy_branch
-: ${openstackfacts_repo:=https://github.com/syseleven/puppet-openstackfacts.git}
+: ${openstackfacts_repo:=https://github.com/autostrap/puppet-openstackfacts.git}
 export openstackfacts_repo
 : ${openstackfacts_branch:=master}
 export openstackfacts_branch
@@ -61,13 +61,13 @@ export openstackfacts_branch
 
 # Directories:
 
-: ${scripts_dir:=/opt/scripts/sys11}
+: ${scripts_dir:=/opt/scripts/autostrap}
 export scripts_dir
 : ${config_dir:=/opt/config/project}
 export config_dir
-: ${sys11_config_dir:=/opt/config/sys11}
-export sys11_config_dir
-: ${bootstrap_dir:=${scripts_dir}/bootstrap.d}  # Bootstrapping scripts supplied by Syseleven.
+: ${global_config_dir:=/opt/config/autostrap}
+export global_config_dir
+: ${bootstrap_dir:=${scripts_dir}/bootstrap.d}  # Bootstrapping scripts supplied by Autostrap
 export bootstrap_dir
 : ${additional_dir:=${config_dir}/bootstrap.d}  # Bootstrapping scripts supplied by project.
 export additional_dir

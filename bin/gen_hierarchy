@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # 2015, j.grassler@syseleven.de
 
-# gen_hierarchy - Generate Hiera hierarchy array for a cloudstrap configuration checkout
+# gen_hierarchy - Generate Hiera hierarchy array for a autostrap configuration checkout
 
-config_dir=/opt/config/sys11
+config_dir=/opt/config/autostrap
 config_name=sys11
 
 usage()
@@ -14,8 +14,8 @@ usage()
   echo
   echo '  options:'
   echo '    --all-topics        Recursively includes all YAML files found in <source dir> in the generated hierarchy, regardless of topic.'
-  echo '    --dir <source dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/sys11-config)'
-  echo '    --prefix <name>     Prefix hierarchy entries with <name>. Can include facts. (defaults to "sys11-config")'
+  echo '    --dir <source dir>  Generate hierarchy for configuration in <dir> (defaults to /opt/config/global)'
+  echo '    --prefix <name>     Prefix hierarchy entries with <name>. Can include facts. (defaults to "global-config")'
   echo "    --include <subdir>  Include subdirectory <subdir> of <source dir> in hierarchy. May occur several times."
   }
 

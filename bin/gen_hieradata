@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 
-sys11_topics=$(jq -r .meta.sys11_topics /config/openstack/latest/meta_data.json)
-project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/sys11-topics | sort -u)
+topics=$(jq -r .meta.topics /config/openstack/latest/meta_data.json)
+project_topics=$(grep -v '^[[:space:]]*#' ${config_dir}/puppet/topics | sort -u)
 
-if [ "$sys11_topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
-  sys11_topics="base firewall"
+if [ "$topics" = "null" ]; then # jq(1) always returns 0, so we need to parse its output.
+  topics="base firewall"
 fi
 
 cat > /etc/puppet/hiera.yaml <<EOF
@@ -48,7 +48,7 @@ if [ -d "$config_dir" ]; then
   # puppet setup, since they cause the puppetmaster side configuration to be
   # deployed during bootstrapping.
 
-  if echo "${sys11_topics}" | grep -w -e puppet-masterless -e puppet-master; then
+  if echo "${topics}" | grep -w -e puppet-masterless -e puppet-master; then
     # Node and node type specific classes overrides from project configuration.
     echo "  - \"project-config/nodes.d/%{::fqdn}\"" >> /etc/puppet/hiera.yaml
     echo "  - \"project-config/nodetypes.d/%{::nodetype}\"" >> /etc/puppet/hiera.yaml
@@ -62,34 +62,34 @@ if [ -d "$config_dir" ]; then
                 --prefix 'project-config' \
                 >> /etc/puppet/hiera.yaml
 
-    # ...and for sys11-config topics requested in project-config.
+    # ...and for global-config topics requested in project-config.
 
   if [ -n "$project_topics" ]; then # Only makes sense if project topics have been defined.
 
-    gen_hierarchy --dir ${sys11_config_dir} \
+    gen_hierarchy --dir ${global_config_dir} \
                   --include config.d --include repos.d \
-                  --prefix 'sys11-config' ${project_topics} \
+                  --prefix 'global-config' ${project_topics} \
                   >> /etc/puppet/hiera.yaml
   fi
 
   # Symlink configuration directories for project specific configurations.
 
   ln -sf ${config_dir}/puppet/hieradata /etc/puppet/hieradata/project-config
-  ln -sf ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/sys11-config
+  ln -sf ${global_config_dir}/puppet/hieradata /etc/puppet/hieradata/global-config
 
 fi
 
 # Deploy bootstrap topic configurations
 
-gen_hierarchy --dir ${sys11_config_dir} \
+gen_hierarchy --dir ${global_config_dir} \
               --include classes.d --include config.d --include repos.d \
-              --prefix '%{::fqdn}/sys11-defaults' ${sys11_topics} \
+              --prefix '%{::fqdn}/global-config' ${topics} \
               >> /etc/puppet/hiera.yaml
 
 # Add global.yaml
 
-echo '  - "sys11-config/global"' >> /etc/puppet/hiera.yaml
+echo '  - "global-config/global"' >> /etc/puppet/hiera.yaml
 
 mkdir -p /etc/puppet/hieradata/$(facter -p fqdn)  # Keeps puppetmaster's bootstrap classes from being declared on agents.
-ln -s ${sys11_config_dir}/puppet/hieradata /etc/puppet/hieradata/$(facter -p fqdn)/sys11-defaults
+ln -s ${global_config_dir}/puppet/hieradata /etc/puppet/hieradata/$(facter -p fqdn)/global-config
 
