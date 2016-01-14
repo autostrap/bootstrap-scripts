@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -x
-shopt -s extglob
 
 # 2015, j.grassler@syseleven.de
 
@@ -9,5 +8,10 @@ shopt -s extglob
 
 mkdir ${stage_dir}
 
-ln -s ${bootstrap_dir}/!(*.md) ${stage_dir}
-ln -s ${additional_dir}/!(*.md) ${stage_dir}
+for dir in ${bootstrap_dir} ${additional_dir}; do
+  if [ -d ${dir} ]; then
+    find ${dir} -type f \
+                -executable \
+                -exec ln -s \{\} ${stage_dir} \;
+  fi
+done

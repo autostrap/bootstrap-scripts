@@ -1,1 +1,3 @@
-../bin/run_puppet_hiera
+#!/bin/sh
+
+run_puppet_hiera
