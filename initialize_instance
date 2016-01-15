@@ -38,6 +38,9 @@ fi
 # Set DEBIAN_FRONTEND appropriately to avoid garbled dkpg output in log file.
 export DEBIAN_FRONTEND=noninteractive
 
+# Use SSH wrapper for git to avoid being deadlocked by password prompts
+export GIT_SSH=ssh-autostrap
+
 # Repositories:
 
 : ${config_repo:=https://github.com/autostrap/project-config.git}

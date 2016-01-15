@@ -155,6 +155,11 @@ if 'override_yaml' in os.environ:
 
 setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['scripts_dir'])
 
+# We only needed this for the initial clone of the bootstrap-scripts
+# repository. From here on out we will use the ssh-autostrap wrapper from the
+# bootstrap-scripts repository.
+os.remove('/root/.ssh/config')
+
 # Launch initialize_instance
 
 initialize_instance = os.path.join(env_export['scripts_dir'], 'initialize_instance')

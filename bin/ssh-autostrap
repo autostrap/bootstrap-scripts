@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# ssh-autostrap - ssh wrapper for Autostrap use in GIT_SSH
+
+ssh -o IdentityFile=/root/.ssh/id_deploy \
+    -o StrictHostKeyChecking=no \
+    -o BatchMode=yes \
+  $@
