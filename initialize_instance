@@ -91,7 +91,7 @@ export additional_config
 export extra_overrides
 
 
-export bootstrap_stage=initialize_instance
+export bootstrap_stage=stage1
 
 name=$(hostname -s)
 
@@ -103,15 +103,30 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/sbin:/usr/local/bin:${scrip
 mkdir -p /etc/puppet/hieradata
 echo 'repodeploy::repos:' >> "$repos_bootstrap"
 
-setup_repos
-setup_stage_dir
-
-for i in ${stage_dir}/*
+for cmd in setup_repos setup_stage_dir
 do
-  launch_logged $i 
+  if ! launch_logged $cmd; then
+    exit 1
+  fi
 done
 
-log_stage_finished
+bootstrap_stage=stage2
+
+for cmd in ${stage_dir}/*
+do
+  if ! launch_logged $cmd; then
+    exit 1
+  fi
+done
+
+# FIXME: resetting bootstrap_stage here is required to maintain compatibility
+# with the scloud utility from syseleven.cloudutils since this uses a stage
+# finished message for 'initialize_instance' as indicator of bootstrapping
+# having run its course.  Everywhere else we use 'stage1' and 'stage2' which is
+# more closely aligned with the Autostrap documentation's Life of a Stack
+# section. If scloud is patched to recognize the conclusion of 'stage2' as
+# well, this should be removed.
+bootstrap_stage=initialize_instance log_stage_finished
 
 env -u deploy_key
 

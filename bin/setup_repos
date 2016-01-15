@@ -7,26 +7,34 @@ set -x
 # Project specific configuration is optional and may have remained unspecified.
 
 if [ -n "$config_repo" ]; then
-  git clone --branch "${config_branch}" "${config_repo}" "${config_dir}"
+  if ! git clone --branch "${config_branch}" "${config_repo}" "${config_dir}"; then
+    exit 1
+  fi
   echo "  '${config_dir}':" >> $repos_bootstrap
   echo "    revision: $config_branch" >> $repos_bootstrap
   echo "    source: $config_repo" >> $repos_bootstrap
   echo '    provider: git' >> $repos_bootstrap
 fi
 
-git clone --branch "${global_config_branch}" "${global_config_repo}" "${global_config_dir}"
+if ! git clone --branch "${global_config_branch}" "${global_config_repo}" "${global_config_dir}"; then
+  exit 1
+fi
 echo "  '${global_config_dir}':" >> $repos_bootstrap
 echo "    revision: $global_config_branch" >> $repos_bootstrap
 echo "    source: $global_config_repo" >> $repos_bootstrap
 echo '    provider: git' >> $repos_bootstrap
 
-git clone --branch "${repodeploy_branch}" "${repodeploy_repo}" /opt/puppet-modules/repodeploy
+if ! git clone --branch "${repodeploy_branch}" "${repodeploy_repo}" /opt/puppet-modules/repodeploy; then
+  exit 1
+fi
 echo "  '/opt/puppet-modules/repodeploy':" >> $repos_bootstrap
 echo "    revision: $repodeploy_branch" >> $repos_bootstrap
 echo "    source: $repodeploy_repo" >> $repos_bootstrap
 echo '    provider: git' >> $repos_bootstrap
 
-git clone --branch "${openstackfacts_branch}" "${openstackfacts_repo}" /opt/puppet-modules/openstackfacts
+if ! git clone --branch "${openstackfacts_branch}" "${openstackfacts_repo}" /opt/puppet-modules/openstackfacts; then
+  exit 1
+fi
 echo "  '/opt/puppet-modules/openstackfacts':" >> $repos_bootstrap
 echo "    revision: $openstackfacts_branch" >> $repos_bootstrap
 echo "    source: $openstackfacts_repo" >> $repos_bootstrap
