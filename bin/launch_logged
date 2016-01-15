@@ -1,3 +1,4 @@
+#!/bin/sh
 # 2015, j.grassler@syseleven.de
 
 # Launches commands and logs their start/finish timestamp to /dev/console
@@ -12,14 +13,16 @@ if [ -z "$cmd" ]; then
   exit 1
 fi
 
-if [ -n "$bootstrap_stage" ]; then
-  msg_start="STAGE {\"script\": \"$bootstrap_stage\", \"date\": \"$(date)\", \"state\": \"started\", \"command\": \"$cmd\"}"
-  msg_end="STAGE {\"script\": \"$bootstrap_stage\", \"date\": \"$(date)\", \"state\": \"finished\", \"command\": \"$cmd\"}"
-else
-  msg_start="STAGE {\"script\": \"n/a\", \"date\": \"$(date)\", \"state\": \"started\", \"command\": \"$cmd\"}"
-  msg_end="STAGE {\"script\": \"n/a\", \"date\": \"$(date)\", \"state\": \"finished\", \"command\": \"$cmd\"}"
-fi
+if [ -z "$bootstrap_stage" ]; then
+  bootstrap_stage='n/a'
+end
 
-echo "$msg_start" > /dev/console
-$cmd
-echo "$msg_end" > /dev/console
+msg="STAGE {\"script\": \"$bootstrap_stage\", \"date\": \"$(date)\", \"state\": \"%s\", \"command\": \"$cmd\"}"
+
+printf "$msg\n" started > /dev/console
+if $cmd; then
+  printf "$msg\n" finished > /dev/console
+else
+  printf "$msg\n" failed > /dev/console
+  exit 1
+fi
