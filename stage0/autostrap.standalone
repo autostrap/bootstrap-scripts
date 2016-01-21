@@ -13,11 +13,50 @@
 #  autostrap.standalone [ [ -m <key>=<value> ] ... ]
 
 import argparse
-import os
-
 import json
-
+import os
 import subprocess
+import sys
+
+
+# Logs to one or more file handles and standard output
+
+class Multilogger:
+    def __init__(self, quiet=False):
+        self.quiet = quiet
+
+    # Logs a free form message
+
+    def log(self, msg, *fhs):
+      if not self.quiet:
+        print(msg, file=sys.stdout, flush=True, end='')
+      for fh in fhs:
+        print(msg, file=fh, flush=True, end='')
+
+
+    # Launches a command and logs its output as it comes in (line buffered)
+
+    def launch_logged(self, cmd, *fhs):
+        process = subprocess.Popen(cmd,
+                bufsize=0,
+                shell=True,
+                stderr=subprocess.STDOUT,
+                stdout=subprocess.PIPE,
+                universal_newlines=True)
+
+        while True:
+            line = process.stdout.readline()
+            if not line:
+                break
+            self.log(line, *fhs)
+
+        if process.wait() != 0:
+          self.log('%s failed with exit status %d' % (cmd, process.returncode), sys.stderr)
+          return process.returncode
+
+        return 0
+
+
 
 # Set root password if a password hash was supplied.
 
@@ -68,15 +107,14 @@ def setup_override_yaml(content):
 
 # Setup git and clone bootstrap-scripts repository.
 
-def setup_git(scripts_repo, scripts_branch, scripts_dir):
-  logfile.write(subprocess.getoutput('apt-get -y update'))
-  logfile.write('\n\n')
-  logfile.write(subprocess.getoutput('apt-get -y install git'))
-  logfile.write('\n\n')
+def setup_git(scripts_repo, scripts_branch, scripts_dir, logger):
+  logger.launch_logged('apt-get -y update', logfile_stage0)
+  logger.log('\n\n', logfile_stage0)
+  logger.launch_logged('apt-get -y install git', logfile_stage0)
+  logger.log('\n\n', logfile_stage0)
   if not os.path.isdir(scripts_dir):
-    logfile.write(subprocess.getoutput('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir) ))
-  logfile.write('\n\n')
-
+    logger.launch_logged('git clone --branch %s %s %s' % (scripts_branch, scripts_repo, scripts_dir), logfile_stage0)
+  logger.log('\n\n', logfile_stage0)
 
 
 parser = argparse.ArgumentParser(description='Standalone wrapper for autostrap deployment without EC2 metadata.')
@@ -89,7 +127,8 @@ os.makedirs(metadir, exist_ok=True)
 logdir = '/var/log/autostrap/'
 os.makedirs(logdir, exist_ok=True)
 
-logfile = open(os.path.join(logdir, 'stage0.log'), 'w')
+logfile_stage0 = open(os.path.join(logdir, 'stage0.log'), 'a')
+logfile_stage1 = open('/var/log/initialize_instance.log', 'a')
 
 # Simulated meta_data.json (filled from -m options) for environments without EC2 metadata
 metafile = open(os.path.join(metadir, 'meta_data.json'), 'w')
@@ -99,7 +138,15 @@ parser.add_argument('-m',
                       action='append',
                       )
 
+parser.add_argument('-q', '--quiet', 
+                      help='Quiet mode: no logging on standard output',
+                      default=False,
+                      action='store_true'
+                      )
+
 args = parser.parse_args()
+
+logger = Multilogger(args.quiet)
 
 metadata = {}
 env_export = os.environ
@@ -153,18 +200,22 @@ if 'deploy_key' in os.environ:
 if 'override_yaml' in os.environ:
   setup_override_yaml(os.environ['override_yaml'])
 
-setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['scripts_dir'])
+setup_git(env_export['scripts_repo'], env_export['scripts_branch'], env_export['scripts_dir'], logger)
 
 # We only needed this for the initial clone of the bootstrap-scripts
 # repository. From here on out we will use the ssh-autostrap wrapper from the
 # bootstrap-scripts repository.
-os.remove('/root/.ssh/config')
+if os.path.exists('/root/.ssh/config'):
+  os.remove('/root/.ssh/config')
 
 # Launch initialize_instance
 
 initialize_instance = os.path.join(env_export['scripts_dir'], 'initialize_instance')
 
-logfile.write('Starting %s\n' % initialize_instance)
-logfile.write(subprocess.getoutput(initialize_instance))
+logger.log('Starting %s\n' % initialize_instance, logfile_stage0)
+logfile_stage0.close()
 
-logfile.close()
+retval = logger.launch_logged(initialize_instance, logfile_stage1)
+logfile_stage1.close()
+
+sys.exit(retval)
